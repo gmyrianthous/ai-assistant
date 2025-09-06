@@ -5,14 +5,18 @@ import pytest
 from alembic import command
 from alembic.config import Config
 from pydantic import PostgresDsn
-from testcontainers.postgres import PostgresContainer
 from testcontainers.core.waiting_utils import wait_container_is_ready
 from testcontainers.core.waiting_utils import wait_for_logs
+from testcontainers.postgres import PostgresContainer
+
+_DATABASE_CONTAINER = 'postgres:17-alpine'
+_DATABASE_DRIVER = 'asyncpg'
+
 
 @pytest.fixture(scope='session')
 @wait_container_is_ready()
 def db_container() -> Iterator[PostgresContainer]:
-    with PostgresContainer('postgres:17-alpine', driver='asyncpg') as container:
+    with PostgresContainer(_DATABASE_CONTAINER, driver=_DATABASE_DRIVER) as container:
         yield container
 
 
@@ -35,6 +39,7 @@ def alembic_config(db_url: PostgresDsn) -> Config:
     config.set_main_option('loggers.keys', '')
 
     return config
+
 
 @pytest.fixture(scope='session', autouse=True)
 def run_migrations(alembic_config: Config) -> None:

@@ -1,4 +1,4 @@
-# 🤖💬 Conversational AI Assistant Python Template
+# 🤖💬 AI Assistant Python Template
 This is a production-ready Python template that can be used to ship agentic systems with FastAPI
 and LangGraph. The template aims to provide a boilerplate solution with batteries included, 
 including:
