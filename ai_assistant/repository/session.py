@@ -15,10 +15,10 @@ class SessionRepository(AbstractRepository):
         Get a session by its id.
 
         Args:
-            id: The id of the session to get.
+            id (UUID): The id of the session to get.
 
         Returns:
-            The session if found, None otherwise.
+            (Session | None): The session if found, None otherwise.
         """
         query = select(self.model).filter(self.model.id == id)
 
