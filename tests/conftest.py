@@ -1,5 +1,3 @@
-"""Test configuration for pytest-alembic integration."""
-
 import pytest
 from alembic.config import Config
 
