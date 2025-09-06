@@ -32,9 +32,7 @@ target_metadata = BaseModel.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-if not os.getenv('CI', False) and config.get_main_option('sqlalchemy.url') is None:
-    # If we are not the CI and the option is not already set, then set it
-    # It would be set if we are running tests from fixtures
+if config.get_main_option('sqlalchemy.url') is None:
     config.set_main_option('sqlalchemy.url', str(settings.DATABASE_URL))
 
 
