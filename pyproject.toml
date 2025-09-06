@@ -1,0 +1,60 @@
+[project]
+name = "ai-assistant"
+version = "0.1.0"
+description = "Conversational AI Assistant"
+authors = [
+  {name = "Giorgos Myrianthous", email = "giorgos.myrianthous@gmail.com"},
+]
+requires-python = "==3.13.*"
+
+dependencies = [
+    "fastapi>=0.115.12",
+    "langfuse==3.0.3",
+    "langgraph>=0.4.1",
+    "langgraph-checkpoint-postgres>=2.0.19",
+    "pydantic-settings>=2.8.1",
+    "python-dotenv>=1.1.0",
+    "uvicorn>=0.34.0",
+    "langchain-community>=0.3.20",
+    "ruff>=0.12.12",
+    "sqlalchemy>=2.0.43",
+    "alembic>=1.16.5",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.4.2",
+  "pre-commit>=4.3.0",
+  "mypy>=1.17",
+  "pytest-asyncio>=1.1.0",
+]
+
+
+[tool.ruff]
+line-length = 99
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "C90",    # mccabe
+    "I",      # isort
+    "N",      # pep8-naming
+    "UP",     # pyupgrade
+    "ASYNC",  # flake8-async
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "FAST",   # FastAPI
+    "RUF100", # unused-noqa
+]
+
+[tool.ruff.lint.isort]
+force-single-line = true
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

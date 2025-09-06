@@ -1,0 +1,16 @@
+services:
+  api:
+    image: ai-assistant
+    build: .
+    ports:
+      - "8080:8080"
+    command:
+      - "uvicorn"
+      - "ai_assistant.api.main:app"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "8080"
+      - "--reload"
+    env_file: .env
+    restart: on-failure
