@@ -12,6 +12,8 @@ services:
       - "--port"
       - "8080"
       - "--reload"
+    environment:
+      - DATABASE_HOST=db
     env_file: .env
     restart: on-failure
   
