@@ -10,6 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from ai_assistant.common.settings import settings
 from ai_assistant.models.base import BaseModel
+# Import all models so Alembic can detect them
+from ai_assistant.models.session import Session  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
