@@ -7,8 +7,8 @@ from urllib.parse import parse_qsl
 from urllib.parse import urlencode
 from urllib.parse import urlparse
 
-from pydantic import pydantic_encoder
-from pydantic_settings import PostgresDsn
+from pydantic import PostgresDsn
+from pydantic.json import pydantic_encoder
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio import async_sessionmaker
