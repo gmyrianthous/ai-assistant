@@ -54,17 +54,9 @@ def run_migrations(alembic_config: Config) -> None:
 
 @pytest.fixture(scope='function')
 async def db_session(db_url: PostgresDsn, mocker: MockerFixture) -> AsyncIterator[AsyncSession]:
-    async with database.db_session(db_url) as session:
-        session.commit = mocker.AsyncMock(return_value=None)  # type: ignore[method-assign]
-        session.close = mocker.AsyncMock(return_value=None)  # type: ignore[method-assign]
+    async with database.db_session(db_url, autocommit=True) as session:
         mocker.patch('ai_assistant.db.database.get_session', mocker.Mock(return_value=session))
-
-        await session.begin()
-
         try:
             yield session
-        except Exception as e:
-            await session.rollback()
-            raise e
         finally:
             await session.rollback()
