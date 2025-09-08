@@ -26,6 +26,9 @@ The backend implementation exposes endpoints that facilitate:
 ### 💡AI
 
 
+### 🖥️ User Interface
+
+
 > **_Note:_**  The default model used in the boilerplate code is set to Google Gemini on Vertex AI,
 > however, the code structure lets you choose the language model of your preference with minimal 
 > changes required, due to the abstractions put in place.
