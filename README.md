@@ -13,6 +13,9 @@ including:
 ## 🌟 Features
 
 ### ⚙️ API
+The backend implementation exposes endpoints use to facilitate:
+- Session Management 
+- Interactions between the chatbot and the end user 
 
 > The swagger documentation for the available endpoints can be accessed on 
 > https://localhost:8080/docs
