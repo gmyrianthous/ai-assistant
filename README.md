@@ -65,7 +65,6 @@ $ make test-integration
 The source code utilises Alembic to manage and perform database migrations in an effective way. 
 
 ##### Creating a new database migration
-To create a new migration, ensure that the docker container is up and running. 
 
 ```bash
 # Spin up the docker container if not running already
@@ -77,7 +76,6 @@ $ make migration-create revision_name="create table xyz"
 If executed successfully, the new version should be located under `migration/versions` path. 
 
 #### Applying database migrations
-To apply the database migration, ensure the docker container is up and running. 
 
 ```bash
 # Spin up the docker container if not running already
