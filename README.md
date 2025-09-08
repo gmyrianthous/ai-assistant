@@ -13,7 +13,7 @@ including:
 ## 🌟 Features
 
 ### ⚙️ API
-The backend implementation exposes endpoints use to facilitate:
+The backend implementation exposes endpoints that facilitate:
 - Session Management 
 - Interactions between the chatbot and the end user 
 
