@@ -12,6 +12,11 @@ including:
 
 ## 🌟 Features
 
+### API
+The swagger documentation for the available endpoints can be accessed on 
+https://localhost:8080/docs, assuming the service is up and running (`make up`). 
+
+
 
 > **_Note:_**  The default model used in the boilerplate code is set to Google Gemini on Vertex AI,
 > however, the code structure lets you choose the language model of your preference with minimal 
