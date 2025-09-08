@@ -1,4 +1,4 @@
-.PHONY: down fmt fmt-check image lint test test-integration test-unit up
+.PHONY: down fmt fmt-check image lint migration-create migration-run test test-integration test-unit up
 
 # Down the services
 down:
@@ -21,6 +21,18 @@ image:
 lint:
 	uv run ruff check
 	uv run mypy ai_assistant tests
+
+# Create a new migration
+migration-create:
+	docker compose run --rm api alembic revision -m "${revision_name}" --autogenerate
+
+# Downgrade migration
+migration-downgrade:
+	docker compose run --rm api alembic downgrade -1
+
+# Run migrations
+migration-run:
+	docker compose run --rm api alembic upgrade head
 
 # Run all tests
 test: test-integration test-unit
