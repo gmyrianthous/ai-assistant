@@ -13,8 +13,9 @@ including:
 ## 🌟 Features
 
 ### ⚙️ API
-The swagger documentation for the available endpoints can be accessed on 
-https://localhost:8080/docs, assuming the service is up and running (`make up`). 
+
+> The swagger documentation for the available endpoints can be accessed on 
+> https://localhost:8080/docs, assuming the service is up and running (`make up`). 
 
 ### 💾 Data Store
 
