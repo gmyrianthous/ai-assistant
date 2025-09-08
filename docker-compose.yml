@@ -16,6 +16,8 @@ services:
       - DATABASE_HOST=db
     env_file: .env
     restart: on-failure
+    volumes:
+      - .:/home/worker/app
   
   db:
     image: postgres:17-alpine
