@@ -2,6 +2,8 @@ import pytest
 from alembic.config import Config
 
 from tests.fixtures.database import *  # noqa: F403
+from tests.fixtures.repository import *  # noqa: F403
+from tests.fixtures.service import *  # noqa: F403
 
 
 @pytest.fixture

@@ -54,6 +54,7 @@ select = [
     "FAST",   # FastAPI
     "RUF100", # unused-noqa
 ]
+ignore = ["B008"]
 
 [tool.ruff.lint.isort]
 force-single-line = true
