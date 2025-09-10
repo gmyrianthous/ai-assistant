@@ -1,6 +1,9 @@
 import uuid
+from datetime import datetime
+from datetime import timezone
 from unittest.mock import AsyncMock
 
+import freezegun
 import pytest
 
 from ai_assistant.domain import Session
@@ -8,6 +11,7 @@ from ai_assistant.exceptions import NotFoundException
 from ai_assistant.services.session import SessionService
 
 
+@freezegun.freeze_time('2025-01-01 00:00:00')
 class TestSessionService:
     async def test_create_session_success(self) -> None:
         # arrange
@@ -16,8 +20,8 @@ class TestSessionService:
         expected_session = Session(
             id=session_id,
             user_id=user_id,
-            created_at=None,
-            updated_at=None,
+            created_at= datetime.now(timezone.utc),
+            updated_at= datetime.now(timezone.utc),
             ended_at=None,
         )
 
@@ -33,6 +37,7 @@ class TestSessionService:
         assert result == expected_session
         mock_repository.create.assert_called_once_with(user_id)
 
+    @freezegun.freeze_time('2025-01-01 00:00:00')
     async def test_get_session_success(self) -> None:
         # arrange
         session_id = uuid.uuid4()
@@ -40,8 +45,8 @@ class TestSessionService:
         expected_session = Session(
             id=session_id,
             user_id=user_id,
-            created_at=None,
-            updated_at=None,
+            created_at= datetime.now(timezone.utc),
+            updated_at= datetime.now(timezone.utc),
             ended_at=None,
         )
 
