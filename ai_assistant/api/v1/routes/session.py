@@ -5,15 +5,15 @@ from fastapi import Depends
 from fastapi import status
 
 from ai_assistant.api.dependencies import get_session_service
-from ai_assistant.api.schemas.session import SessionRequest
-from ai_assistant.api.schemas.session import SessionResponse
+from ai_assistant.api.v1.schemas.session import SessionRequest
+from ai_assistant.api.v1.schemas.session import SessionResponse
 from ai_assistant.services.session import SessionService
 
 router = APIRouter()
 
 
 @router.post(
-    '/v1/session',
+    '/session',
     status_code=status.HTTP_201_CREATED,
     summary='Create a new session',
 )

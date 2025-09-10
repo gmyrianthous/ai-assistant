@@ -3,16 +3,21 @@ from fastapi import Request
 from fastapi import status
 from fastapi.responses import JSONResponse
 
-from ai_assistant.api.routes import health
-from ai_assistant.api.routes import session
+from ai_assistant.api.routes.health import router as health_router
+from ai_assistant.api.v1.routers import V1_API_PREFIX
+from ai_assistant.api.v1.routers import v1_api_router
 from ai_assistant.exceptions import AppException
 from ai_assistant.exceptions import AuthorizationException
 from ai_assistant.exceptions import NotFoundException
 
 app = FastAPI()
 
-app.include_router(health.router)
-app.include_router(session.router)
+# Health endpoint at root level
+# k8s expects a health endpoint at the root level
+app.include_router(health_router)
+
+# Versioned API endpoints
+app.include_router(v1_api_router, prefix=V1_API_PREFIX)
 
 
 @app.exception_handler(AppException)
