@@ -20,6 +20,9 @@ dependencies = [
     "sqlalchemy>=2.0.43",
     "alembic>=1.16.5",
     "asyncpg>=0.30.0",
+    "python-json-logger>=3.3.0",
+    "langchain-google-vertexai>=2.0.28",
+    "psycopg[binary]>=3.1.0",
 ]
 
 [dependency-groups]
@@ -71,5 +74,6 @@ plugins = ["sqlalchemy.ext.mypy.plugin"]
 [[tool.mypy.overrides]]
 module = [
   "testcontainers.*",
+  "pythonjsonlogger.*",
 ]
 ignore_missing_imports = true
