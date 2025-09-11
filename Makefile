@@ -1,4 +1,4 @@
-.PHONY: down fmt fmt-check image lint migration-create migration-run test test-integration test-unit up
+.PHONY: down fmt fmt-check image lint logs logs-api logs-db migration-create migration-run test test-integration test-unit up
 
 # Down the services
 down:
@@ -21,6 +21,18 @@ image:
 lint:
 	uv run ruff check
 	uv run mypy ai_assistant tests
+
+# Follow logs continuously
+logs:
+	docker compose logs -f
+
+# Follow API logs only
+logs-api:
+	docker compose logs -f api
+
+# Follow DB logs only
+logs-db:
+	docker compose logs -f db
 
 # Create a new migration
 migration-create:
