@@ -12,6 +12,7 @@ ENV UV_LINK_MODE=copy \
 COPY ./pyproject.toml ./uv.lock* /tmp/
 
 RUN --mount=type=cache,target=/root/.cache \
+    --mount=type=secret,id=GCP_TOKEN \
     uv sync --locked --no-dev
 
 FROM python:3.13-slim AS prod

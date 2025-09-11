@@ -1,7 +1,13 @@
+
+volumes:
+  pg_data:
+
 services:
   api:
     image: ai-assistant
     build: .
+    secrets:
+      - GCP_TOKEN
     ports:
       - "8080:8080"
     command:
@@ -18,6 +24,7 @@ services:
     restart: on-failure
     volumes:
       - .:/home/worker/app
+      - ~/.config/gcloud:/home/worker/.config/gcloud
   
   db:
     image: postgres:17-alpine
@@ -28,7 +35,8 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=ai_assistant
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - pg_data:/var/lib/postgresql/data
 
-volumes:
-  postgres_data:
+secrets:
+  GCP_TOKEN:
+    environment: "GCP_TOKEN"

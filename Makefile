@@ -15,7 +15,7 @@ fmt-check:
 
 # Build the docker image
 image:
-	docker build -t ai-assistant .
+	GCP_TOKEN=$(shell gcloud auth print-access-token) docker build -t ai-assistant --secret id=GCP_TOKEN .
 
 # Lint the code
 lint:
@@ -36,15 +36,15 @@ logs-db:
 
 # Create a new migration
 migration-create:
-	docker compose run --rm api alembic revision -m "${revision_name}" --autogenerate
+	GCP_TOKEN=$(shell gcloud auth print-access-token) docker compose run --rm api alembic revision -m "${revision_name}" --autogenerate
 
 # Downgrade migration
 migration-downgrade:
-	docker compose run --rm api alembic downgrade -1
+	GCP_TOKEN=$(shell gcloud auth print-access-token) docker compose run --rm api alembic downgrade -1
 
 # Run migrations
 migration-run:
-	docker compose run --rm api alembic upgrade head
+	GCP_TOKEN=$(shell gcloud auth print-access-token) docker compose run --rm api alembic upgrade head
 
 # Run all tests
 test: test-integration test-unit
@@ -59,4 +59,4 @@ test-unit:
 
 # Up the services
 up: 
-	docker compose up -d
+	GCP_TOKEN=$(shell gcloud auth print-access-token) docker compose up -d
