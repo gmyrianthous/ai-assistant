@@ -13,7 +13,8 @@ class AppSettings(BaseSettings):
     ENVIRONMENT: str = 'development'
     LOGGING_LEVEL: str = 'INFO'
     JWT_SECRET: SecretStr = SecretStr('pass')
-    GCP_PROJECT_ID: str = '<GCP_PROJECT_ID>'
+    GOOGLE_CLOUD_PROJECT: str = '<GOOGLE_CLOUD_PROJECT>'
+    GOOGLE_CLOUD_LOCATION: str = '<GOOGLE_CLOUD_LOCATION>'
 
     DATABASE_HOST: str = 'localhost'
     DATABASE_NAME: str = 'ai_assistant'
