@@ -1,4 +1,4 @@
-.PHONY: down fmt fmt-check image lint logs logs-api logs-db migration-create migration-run test test-integration test-unit up
+.PHONY: down fmt fmt-check image lint logs logs-api logs-db migration-create migration-run setup test test-integration test-unit up
 
 # Down the services
 down:
@@ -45,6 +45,11 @@ migration-downgrade:
 # Run migrations
 migration-run:
 	GCP_TOKEN=$(shell gcloud auth print-access-token) docker compose run --rm api alembic upgrade head
+
+# Setup the local environment
+setup:
+	uv sync
+	uv run pre-commit install
 
 # Run all tests
 test: test-integration test-unit

@@ -51,8 +51,8 @@ $ curl -LsSf https://astral.sh/uv/install.sh | sh
 # windows
 $ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 
-# create virtual environment with dependencies
-$ uv sync
+# Install dependencies, and pre-commit hooks
+$ make setup
 ```
 
 3. Copy the sample environment file
@@ -61,6 +61,8 @@ $ cp .env.example .env
 ```
 
 4. Update the content of the environment file using your configuration/keys etc. 
+
+5. 
 
 ### Development
 
