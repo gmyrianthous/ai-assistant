@@ -1,4 +1,4 @@
-name: CI
+name: Test, Lint, Format
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ on:
       - main
 
 jobs:
-  ci:
+  test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -21,21 +21,21 @@ jobs:
         ]
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v6
-      with:
-        enable-cache: true
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version-file: pyproject.toml
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: pyproject.toml
 
-    - name: Install dependencies
-      run: uv sync --locked --all-extras --dev
+      - name: Install dependencies
+        run: uv sync --locked --all-extras --dev
 
-    - name: Run ${matrix.test}
-      run: make ${matrix.test}
+      - name: Run ${matrix.test}
+        run: make ${matrix.test}
