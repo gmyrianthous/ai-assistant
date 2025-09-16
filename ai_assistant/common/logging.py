@@ -10,11 +10,11 @@ class CustomJsonFormatter(JsonFormatter):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         kwargs['timestamp'] = True
         super().__init__(*args, **kwargs)
-    
+
     def add_fields(
-        self, 
-        log_record: dict[str, Any], 
-        record: logging.LogRecord, 
+        self,
+        log_record: dict[str, Any],
+        record: logging.LogRecord,
         message_dict: dict[str, Any]
     ) -> None:
         super().add_fields(log_record, record, message_dict)
