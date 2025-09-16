@@ -37,5 +37,5 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked --all-extras --dev
 
-      # - name: Run ${matrix.test}
-      #   run: make ${matrix.test}
+      - name: Run ${{ matrix.test }}
+        run: make ${{ matrix.test }}
