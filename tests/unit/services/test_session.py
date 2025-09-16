@@ -20,8 +20,8 @@ class TestSessionService:
         expected_session = Session(
             id=session_id,
             user_id=user_id,
-            created_at= datetime.now(timezone.utc),
-            updated_at= datetime.now(timezone.utc),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
             ended_at=None,
         )
 
@@ -45,8 +45,8 @@ class TestSessionService:
         expected_session = Session(
             id=session_id,
             user_id=user_id,
-            created_at= datetime.now(timezone.utc),
-            updated_at= datetime.now(timezone.utc),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
             ended_at=None,
         )
 
