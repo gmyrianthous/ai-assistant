@@ -65,3 +65,9 @@ test-unit:
 # Up the services
 up: 
 	GCP_TOKEN=$(shell gcloud auth print-access-token) docker compose up -d
+
+# CI Targets
+ci-lint: lint
+ci-fmt-check: fmt-check
+ci-unit: uv run pytest tests/unit -vv --junitxml=test-results/unit/results.xml
+ci-integration: uv run pytest tests/integration -vv --junitxml=test-results/integration/results.xml
