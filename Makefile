@@ -1,4 +1,4 @@
-.PHONY: down fmt fmt-check image lint logs logs-api logs-db migration-create migration-run setup test test-integration test-unit up
+.PHONY: down fmt fmt-check image lint logs logs-api logs-db migration-create migration-run setup test test-integration test-unit up ci-lint ci-fmt-check ci-unit ci-integration
 
 # Down the services
 down:
@@ -68,6 +68,11 @@ up:
 
 # CI Targets
 ci-lint: lint
+
 ci-fmt-check: fmt-check
-ci-unit: uv run pytest tests/unit -vv --junitxml=test-results/unit/results.xml
-ci-integration: uv run pytest tests/integration -vv --junitxml=test-results/integration/results.xml
+
+ci-unit:
+	uv run pytest tests/unit -vv
+
+ci-integration:
+	uv run pytest tests/integration -vv
