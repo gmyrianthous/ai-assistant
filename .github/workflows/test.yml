@@ -38,4 +38,4 @@ jobs:
         run: uv sync --locked --all-extras --dev
 
       - name: Run ${{ matrix.test }}
-        run: uv run make ${{ matrix.test }}
+        run: make ${{ matrix.test }}
