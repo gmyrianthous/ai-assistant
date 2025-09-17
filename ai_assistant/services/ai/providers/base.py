@@ -3,11 +3,12 @@ from abc import abstractmethod
 from collections.abc import AsyncGenerator
 from uuid import UUID
 
+from ai_assistant.domain import Message
+
 
 class AIProvider(ABC):
-
     @abstractmethod
-    async def generate_response(self, session_id: UUID, user_message: str) -> str:
+    async def generate_response(self, session_id: UUID, user_message: str) -> list[Message]:
         """
         Generate AI response for the given user message.
 
@@ -16,7 +17,7 @@ class AIProvider(ABC):
             user_message: The user message to generate a response for
 
         Returns:
-            The generated response
+            List of messages including user message and AI response(s)
         """
         pass
 

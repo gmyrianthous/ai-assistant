@@ -5,12 +5,12 @@ from uuid import uuid4
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ai_assistant.domain import Message
 from ai_assistant.services.ai.providers.base import AIProvider
 from ai_assistant.services.ai.service import AIService
 
 
 class TestAIService:
-
     async def test_ai_service_initialisation(
         self,
         ai_service: AIService,
@@ -18,8 +18,11 @@ class TestAIService:
         db_session: AsyncSession,
     ) -> None:
         # arrange
-        expected_response = 'This is supposed to be a AI response!'
-        ai_provider.generate_response.return_value = expected_response
+        expected_messages = [
+            Message(id=uuid4(), content='Test message with real DB', role='user'),
+            Message(id=uuid4(), content='This is supposed to be a AI response!', role='assistant'),
+        ]
+        ai_provider.generate_response.return_value = expected_messages
         session_id = uuid4()
         user_message = 'Test message with real DB'
 
@@ -29,7 +32,7 @@ class TestAIService:
         # assert
         assert ai_service.db_session is db_session
         assert ai_service.provider is not None
-        assert result == expected_response
+        assert result == expected_messages
 
     async def test_generate_response(
         self,
@@ -40,14 +43,17 @@ class TestAIService:
         # arrange
         session_id = uuid4()
         user_message = 'Hello, world!'
-        expected_response = f"Response for session {session_id}"
-        ai_provider.generate_response.return_value = expected_response
+        expected_messages = [
+            Message(id=uuid4(), content=user_message, role='user'),
+            Message(id=uuid4(), content=f'Response for session {session_id}', role='assistant'),
+        ]
+        ai_provider.generate_response.return_value = expected_messages
 
         # act
         result = await ai_service.generate_response(session_id, user_message)
 
         # assert
-        assert result == expected_response
+        assert result == expected_messages
         ai_provider.generate_response.assert_called_once_with(session_id, user_message)
 
     async def test_generate_stream_response(
@@ -58,9 +64,9 @@ class TestAIService:
     ) -> None:
         # arrange
         async def mock_stream() -> AsyncGenerator[str, None]:
-            yield "This,"
-            yield " is supposed to be a AI"
-            yield " response!"
+            yield 'This,'
+            yield ' is supposed to be a AI'
+            yield ' response!'
 
         ai_provider.generate_stream_response.return_value = mock_stream()
         session_id = uuid4()
@@ -82,7 +88,11 @@ class TestAIService:
         db_session: AsyncSession,
     ) -> None:
         # arrange
-        ai_provider.generate_response.return_value = 'This is supposed to be a AI response!'
+        expected_messages = [
+            Message(id=uuid4(), content='Test message', role='user'),
+            Message(id=uuid4(), content='This is supposed to be a AI response!', role='assistant'),
+        ]
+        ai_provider.generate_response.return_value = expected_messages
 
         async def mock_stream() -> AsyncGenerator[str, None]:
             yield 'This,'
@@ -101,8 +111,8 @@ class TestAIService:
             stream_chunks.append(chunk)
 
         # assert
-        assert result1 == 'This is supposed to be a AI response!'
-        assert result2 == 'This is supposed to be a AI response!'
+        assert result1 == expected_messages
+        assert result2 == expected_messages
         assert stream_chunks == ['This,', ' is supposed to be a AI', ' response!']
         assert ai_provider.generate_response.call_count == 2
         assert ai_provider.generate_stream_response.call_count == 1
@@ -115,13 +125,22 @@ class TestAIService:
         session_id1 = uuid4()
         session_id2 = uuid4()
 
+        messages1 = [
+            Message(id=uuid4(), content='Test 1', role='user'),
+            Message(id=uuid4(), content='Response from provider 1', role='assistant'),
+        ]
+        messages2 = [
+            Message(id=uuid4(), content='Test 2', role='user'),
+            Message(id=uuid4(), content='Response from provider 2', role='assistant'),
+        ]
+
         provider1 = Mock()
-        provider1.generate_response = AsyncMock(return_value='Response from provider 1')
+        provider1.generate_response = AsyncMock(return_value=messages1)
         provider1.generate_stream_response = Mock()
         provider1.cleanup = AsyncMock()
 
         provider2 = Mock()
-        provider2.generate_response = AsyncMock(return_value='Response from provider 2')
+        provider2.generate_response = AsyncMock(return_value=messages2)
         provider2.generate_stream_response = Mock()
         provider2.cleanup = AsyncMock()
 
@@ -133,7 +152,7 @@ class TestAIService:
         result2 = await service2.generate_response(session_id2, 'Test 2')
 
         # assert
-        assert result1 == 'Response from provider 1'
-        assert result2 == 'Response from provider 2'
+        assert result1 == messages1
+        assert result2 == messages2
         provider1.generate_response.assert_called_once_with(session_id1, 'Test 1')
         provider2.generate_response.assert_called_once_with(session_id2, 'Test 2')

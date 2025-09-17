@@ -4,6 +4,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ai_assistant.domain import Message
 from ai_assistant.services.ai.providers.base import AIProvider
 
 logger = logging.getLogger(__name__)
@@ -19,7 +20,7 @@ class AIService:
         self.db_session = db_session
         self.provider = provider
 
-    async def generate_response(self, session_id: UUID, user_message: str) -> str:
+    async def generate_response(self, session_id: UUID, user_message: str) -> list[Message]:
         """
         Generate AI response for the given user message.
 
@@ -28,9 +29,11 @@ class AIService:
             user_message: The user message to generate a response for
 
         Returns:
-            (str): The generated response
+            List of messages including user message and AI response(s)
         """
-        return await self.provider.generate_response(session_id, user_message)
+        result = await self.provider.generate_response(session_id, user_message)
+
+        return result
 
     async def generate_stream_response(
         self,
@@ -49,7 +52,3 @@ class AIService:
         """
         async for chunk in self.provider.generate_stream_response(session_id, user_message):
             yield chunk
-
-    async def cleanup(self) -> None:
-        """Clean up AI service resources."""
-        await self.provider.cleanup()

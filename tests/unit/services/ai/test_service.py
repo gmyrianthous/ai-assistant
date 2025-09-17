@@ -1,12 +1,12 @@
 from collections.abc import AsyncGenerator
 from uuid import uuid4
 
+from ai_assistant.domain import Message
 from ai_assistant.services.ai.providers.base import AIProvider
 from ai_assistant.services.ai.service import AIService
 
 
 class TestAIService:
-
     async def test_generate_response_delegates_to_provider(
         self,
         ai_service: AIService,
@@ -14,15 +14,18 @@ class TestAIService:
     ) -> None:
         # arrange
         session_id = uuid4()
-        user_message = "Hello, AI!"
-        expected_response = "Hello, human!"
-        ai_provider.generate_response.return_value = expected_response
+        user_message = 'Hello, AI!'
+        expected_messages = [
+            Message(id=uuid4(), content=user_message, role='user'),
+            Message(id=uuid4(), content='Hello, human!', role='assistant'),
+        ]
+        ai_provider.generate_response.return_value = expected_messages
 
         # act
         result = await ai_service.generate_response(session_id, user_message)
 
         # assert
-        assert result == expected_response
+        assert result == expected_messages
         ai_provider.generate_response.assert_called_once_with(session_id, user_message)
 
     async def test_generate_stream_response_delegates_to_provider(
@@ -32,8 +35,8 @@ class TestAIService:
     ) -> None:
         # arrange
         session_id = uuid4()
-        user_message = "Hello, AI!"
-        expected_chunks = ["Hello", " human", "!"]
+        user_message = 'Hello, AI!'
+        expected_chunks = ['Hello', ' human', '!']
 
         async def mock_stream() -> AsyncGenerator[str, None]:
             for chunk in expected_chunks:
