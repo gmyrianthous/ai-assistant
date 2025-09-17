@@ -40,9 +40,6 @@ code quality and reliability through automated testing, linting, and formatting 
 #### GitHub Actions Workflows
 
 **Test, Lint, Format Workflow** (`.github/workflows/test.yml`)
-- **Triggers**: Pull requests, pushes to main branch, and manual workflow dispatch
-- **Platform**: Runs on Ubuntu Latest
-- **Strategy**: Matrix-based execution with fail-fast disabled for comprehensive testing
 
 The workflow includes four parallel jobs:
 1. **`ci-lint`**: Static code analysis using `ruff` and `mypy` type checking
