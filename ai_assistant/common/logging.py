@@ -15,18 +15,20 @@ class CustomJsonFormatter(JsonFormatter):
         self,
         log_record: dict[str, Any],
         record: logging.LogRecord,
-        message_dict: dict[str, Any]
+        message_dict: dict[str, Any],
     ) -> None:
         super().add_fields(log_record, record, message_dict)
         log_record['environment'] = settings.ENVIRONMENT
         log_record['level'] = record.levelname
         log_record['name'] = record.name
 
+
 class UnivornAccessFilter(logging.Filter):
     """Skip the logging on HTTP requests by Uvicorn"""
 
     def filter(self, record: logging.LogRecord) -> bool:
         return record.name != 'uvicorn.access'
+
 
 class CustomStreamHandler(logging.StreamHandler):  # type: ignore[type-arg]
     def __init__(self, *args: Any, **kwds: Any) -> None:
