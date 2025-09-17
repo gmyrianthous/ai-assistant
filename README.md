@@ -33,6 +33,23 @@ The backend implementation exposes endpoints that facilitate:
 > however, the code structure lets you choose the language model of your preference with minimal 
 > changes required, due to the abstractions put in place.
 
+### ♾️ CI/CD
+The project includes a comprehensive CI/CD pipeline implemented with GitHub Actions that ensures 
+code quality and reliability through automated testing, linting, and formatting checks.
+
+#### GitHub Actions Workflows
+
+**Test, Lint, Format Workflow** (`.github/workflows/test.yml`)
+- **Triggers**: Pull requests, pushes to main branch, and manual workflow dispatch
+- **Platform**: Runs on Ubuntu Latest
+- **Strategy**: Matrix-based execution with fail-fast disabled for comprehensive testing
+
+The workflow includes four parallel jobs:
+1. **`ci-lint`**: Static code analysis using `ruff` and `mypy` type checking
+2. **`ci-fmt-check`**: Code formatting verification with `ruff`
+3. **`ci-unit`**: Unit test execution with `pytest`
+4. **`ci-integration`**: Integration test execution with `pytest`
+
 ## 🚀 Getting Started
 
 ### Setting up the environment
@@ -61,8 +78,6 @@ $ cp .env.example .env
 ```
 
 4. Update the content of the environment file using your configuration/keys etc. 
-
-5. 
 
 ### Development
 
