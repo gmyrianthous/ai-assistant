@@ -1,10 +1,10 @@
 # 🤖💬 AI Assistant Python Template
 This is a production-ready Python template that can be used to ship agentic systems with FastAPI
-and LangGraph. The template aims to provide a boilerplate solution with batteries included, 
-including:
+and Agent Development Kit (ADK). The template aims to provide a boilerplate solution with 
+batteries included:
 - API (FastAPI)
-- AI Agents (LangGraph, Tools)
-- User Interface (assistant-ui)
+- AI Agents (Agent Development Kit)
+- User Interface (`adk web`)
 - Monitoring & Observability (Grafana, LangFuse)
 - Model Evaluations (LangFuse)
 - CI/CD (GitHub Actions)
