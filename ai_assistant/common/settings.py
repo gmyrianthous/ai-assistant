@@ -10,6 +10,7 @@ load_dotenv()
 class AppSettings(BaseSettings):
     model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8')
 
+    APP_NAME: str = 'ai_assistant'
     ENVIRONMENT: str = 'development'
     LOGGING_LEVEL: str = 'INFO'
     JWT_SECRET: SecretStr = SecretStr('pass')
@@ -21,6 +22,10 @@ class AppSettings(BaseSettings):
     DATABASE_USER: str = 'postgres'
     DATABASE_PASSWORD: SecretStr = SecretStr('postgres')
     DATABASE_PORT: int = 5432
+
+    LANGFUSE_HOST: str = 'https://cloud.langfuse.com'
+    LANGFUSE_SECRET_KEY: SecretStr = SecretStr('langfuse_secret_key')
+    LANGFUSE_PUBLIC_KEY: SecretStr = SecretStr('langfuse_public_key')
 
     @property
     def DATABASE_URL(self) -> PostgresDsn:  # noqa: N802

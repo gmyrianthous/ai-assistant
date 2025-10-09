@@ -24,6 +24,7 @@ dependencies = [
     "langchain-google-vertexai>=2.0.28",
     "psycopg[binary]>=3.1.0",
     "psycopg_pool>=3.2.4",
+    "google-adk>=1.15.1",
 ]
 
 [dependency-groups]
