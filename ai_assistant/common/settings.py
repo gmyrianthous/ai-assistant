@@ -16,6 +16,7 @@ class AppSettings(BaseSettings):
     JWT_SECRET: SecretStr = SecretStr('pass')
     GOOGLE_CLOUD_PROJECT: str = '<GOOGLE_CLOUD_PROJECT>'
     GOOGLE_CLOUD_LOCATION: str = '<GOOGLE_CLOUD_LOCATION>'
+    DEFAULT_MODEL: str = 'gemini-2.5-flash'
 
     DATABASE_HOST: str = 'localhost'
     DATABASE_NAME: str = 'ai_assistant'
@@ -26,6 +27,7 @@ class AppSettings(BaseSettings):
     LANGFUSE_HOST: str = 'https://cloud.langfuse.com'
     LANGFUSE_SECRET_KEY: SecretStr = SecretStr('langfuse_secret_key')
     LANGFUSE_PUBLIC_KEY: SecretStr = SecretStr('langfuse_public_key')
+    LANGFUSE_DEBUG: bool = False
 
     @property
     def DATABASE_URL(self) -> PostgresDsn:  # noqa: N802
