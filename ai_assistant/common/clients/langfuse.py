@@ -3,6 +3,7 @@ Langfuse client for prompt management and observability.
 
 Provides lazy initialization with authentication verification.
 """
+
 import logging
 
 from langfuse import Langfuse
@@ -44,7 +45,9 @@ def get_langfuse_client() -> Langfuse:
             if _langfuse_client.auth_check():
                 logger.info('Langfuse client is authenticated and ready!')
             else:
-                error_msg = 'Langfuse authentication failed. Please check your credentials and host.'
+                error_msg = (
+                    'Langfuse authentication failed. Please check your credentials and host.'
+                )
                 logger.error(error_msg)
                 _langfuse_client = None
                 raise RuntimeError(error_msg)
