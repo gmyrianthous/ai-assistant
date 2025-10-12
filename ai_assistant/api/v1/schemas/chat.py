@@ -3,13 +3,15 @@ from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel
+from pydantic import Field
 
 from ai_assistant.domain import Message as DomainMessage
 
 
 class ChatRequest(BaseModel):
-    session_id: UUID
-    message: str
+    message: str = Field(..., description="The user's message")
+    session_id: str = Field(..., description='Session ID for continuing a conversation')
+    user_id: str = Field(..., description='User ID for tracking conversations across sessions')
 
 
 class MessageSchema(BaseModel):
@@ -38,11 +40,5 @@ class MessageSchema(BaseModel):
 
 
 class ChatResponse(BaseModel):
-    messages: list[MessageSchema]
-
-
-class ChatStreamResponse(BaseModel):
-    message_id: UUID
-    content: str
-    done: bool = False
-    metadata: dict[str, Any] | None = None
+    session_id: str = Field(..., description='Session ID for this conversation')
+    messages: list[MessageSchema] = Field(..., description='Messages in this exchange')

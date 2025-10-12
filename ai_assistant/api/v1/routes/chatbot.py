@@ -36,11 +36,11 @@ async def chat(
     """
     logger.info(f'New chat request received for session {request.session_id}')
 
-    domain_messages = await ai_service.generate_response(
+    domain_messages = await ai_service.run(
         session_id=request.session_id,
         user_message=request.message,
+        user_id=request.user_id,
     )
-
     response_messages = [MessageSchema.from_domain_model(msg) for msg in domain_messages]
 
-    return ChatResponse(messages=response_messages)
+    return ChatResponse(session_id=request.session_id, messages=response_messages)
