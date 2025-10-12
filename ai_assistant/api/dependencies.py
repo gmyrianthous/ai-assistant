@@ -1,27 +1,42 @@
+import logging
 from typing import Annotated
 
 from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import Request
 
-from ai_assistant.db.dependencies import get_db_session
-from ai_assistant.repository.session import SessionRepository
-from ai_assistant.services.session import SessionService
+from ai_assistant.services.ai.adk.session_factory import ADKSessionService
+from ai_assistant.services.ai.service import AIService
+
+logger = logging.getLogger(__name__)
 
 
-def get_session_service(
-    session: Annotated[AsyncSession, Depends(get_db_session)],
-) -> SessionService:
+def get_session_service(request: Request) -> ADKSessionService:
     """
-    FastAPI dependency to get a session service.
+    Get the singleton ADK session service instance from app state.
 
-    Constructs the complete service dependency chain internally.
-    API layer only knows about services, not repositories.
+    This session service is initialized once during application startup
+    and shared across all requests for performance and consistency.
 
     Args:
-        session: The database session from FastAPI dependency injection.
+        request: The FastAPI request object.
 
     Returns:
-        SessionService: The configured session service.
+        ADKSessionService: The singleton session service instance.
     """
-    repository = SessionRepository(session=session)
-    return SessionService(session_repository=repository)
+    return request.app.state.session_service
+
+
+def get_ai_service(
+    session_service: Annotated[ADKSessionService, Depends(get_session_service)],
+) -> AIService:
+    """
+    FastAPI dependency to get an AI service.
+
+    Args:
+        session_service: The injected ADK session service.
+
+    Returns:
+        AIService: The configured AI service instance.
+    """
+    logger.debug('Creating AI service')
+    return AIService(session_service=session_service)
