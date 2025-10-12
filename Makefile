@@ -1,4 +1,7 @@
-.PHONY: down fmt fmt-check image lint logs logs-api logs-db migration-create migration-run setup test test-integration test-unit up ci-lint ci-fmt-check ci-unit ci-integration
+.PHONY: adk-web down fmt fmt-check image lint logs logs-api logs-db migration-create migration-run setup test test-integration test-unit up ci-lint ci-fmt-check ci-unit ci-integration
+
+adk-web:
+	PYTHONPATH=. uv run adk web ai_assistant/services/ai/adk/agents/
 
 # Down the services
 down:
