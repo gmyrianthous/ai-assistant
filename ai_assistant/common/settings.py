@@ -16,6 +16,7 @@ class AppSettings(BaseSettings):
     JWT_SECRET: SecretStr = SecretStr('pass')
     GOOGLE_CLOUD_PROJECT: str = '<GOOGLE_CLOUD_PROJECT>'
     GOOGLE_CLOUD_LOCATION: str = '<GOOGLE_CLOUD_LOCATION>'
+    GOOGLE_GENAI_USE_VERTEXAI: bool = True
     DEFAULT_MODEL: str = 'gemini-2.5-flash'
 
     DATABASE_HOST: str = 'localhost'
