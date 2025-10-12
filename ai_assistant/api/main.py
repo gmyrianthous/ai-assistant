@@ -42,16 +42,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info('Starting application initialisation...')
 
     # Initialise session service
-    logger.info('--Starting session service initialisation...')
+    logger.info('Starting session service initialisation...')
     session_service = create_session_service()
     app.state.session_service = session_service
-    logger.info(f'---Initialised session service: {type(session_service).__name__}')
+    logger.info(f'Initialised session service: {type(session_service).__name__}')
 
     # Initialise langfuse client
-    logger.info('--Starting langfuse client initialisation...')
+    logger.info('Starting langfuse client initialisation...')
     langfuse = get_langfuse_client()
     langfuse.flush()
-    logger.info('---Initialised langfuse client')
+    logger.info('Initialised langfuse client')
 
     logger.info('Application startup complete')
 
