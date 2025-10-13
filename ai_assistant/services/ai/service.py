@@ -60,7 +60,7 @@ class AIService:
         Returns:
             List of messages including user message and AI response(s)
         """
-        logger.info(f'Processing message for session {session_id}, user {user_id}')
+        logger.debug(f'Processing message for session {session_id}, user {user_id}')
 
         runner = self._get_runner()
         message = Content(role='user', parts=[Part(text=user_message)])
@@ -92,7 +92,7 @@ class AIService:
             output=messages[0].content,
         )
 
-        logger.info(f'Generated message for session {session_id}')
+        logger.debug(f'Generated message for session {session_id}')
         return messages
 
     @observe
@@ -113,7 +113,7 @@ class AIService:
         Yields:
             StreamChunk: Content chunks with metadata
         """
-        logger.info(f'Processing streaming message for session {session_id}, user {user_id}')
+        logger.debug(f'Processing streaming message for session {session_id}, user {user_id}')
 
         runner = self._get_runner()
 
@@ -133,7 +133,7 @@ class AIService:
                             yield StreamChunk(content=part.text, done=False)
 
         yield StreamChunk(content='', done=True)
-        logger.info(f'Stream completed for session {session_id}')
+        logger.debug(f'Stream completed for session {session_id}')
 
         langfuse = get_langfuse_client()
         langfuse.update_current_trace(
