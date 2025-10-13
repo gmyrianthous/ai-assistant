@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from fastapi import Request
 from fastapi import status
 from fastapi.responses import JSONResponse
+from openinference.instrumentation.google_adk import GoogleADKInstrumentor
 
 from ai_assistant.api.routes.health import router as health_router
 from ai_assistant.api.v1.routers import V1_API_PREFIX
@@ -40,6 +41,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         None: The application is running.
     """
     logger.info('Starting application initialisation...')
+
+    # Initialise OpenTelemetry instrumentation for Google ADK (required for langfuse)
+    logger.info('Initialising OpenTelemetry instrumentation for Google ADK...')
+    GoogleADKInstrumentor().instrument()
+    logger.info('OpenTelemetry instrumentation for Google ADK initialised')
 
     # Initialise session service
     logger.info('Starting session service initialisation...')
