@@ -10,3 +10,9 @@ class Message(BaseModel):
     content: str
     role: Literal['user', 'assistant', 'system']
     metadata: dict[str, Any] | None = None
+
+
+class StreamChunk(BaseModel):
+    content: str
+    done: bool = False
+    metadata: dict[str, Any] | None = None

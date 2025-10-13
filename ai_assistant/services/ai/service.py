@@ -1,13 +1,19 @@
 import logging
+from collections.abc import AsyncGenerator
 from uuid import UUID
 from uuid import uuid4
 
+from google.adk.agents.run_config import StreamingMode
+from google.adk.runners import RunConfig
 from google.adk.runners import Runner
 from google.genai.types import Content
 from google.genai.types import Part
+from langfuse import observe
 
+from ai_assistant.common.clients.langfuse import get_langfuse_client
 from ai_assistant.common.settings import settings
 from ai_assistant.domain import Message
+from ai_assistant.domain import StreamChunk
 from ai_assistant.services.ai.adk.agents.weather_assistant import root_agent
 from ai_assistant.services.ai.adk.session_factory import ADKSessionService
 
@@ -15,13 +21,6 @@ logger = logging.getLogger(__name__)
 
 
 class AIService:
-    """
-    Service layer for AI interactions.
-
-    Provides a stable interface for the API layer and handles cross-cutting
-    concerns like logging, validation, metrics, etc.
-    """
-
     def __init__(self, session_service: ADKSessionService) -> None:
         self.session_service = session_service
         self._runner: Runner | None = None
@@ -29,8 +28,6 @@ class AIService:
     def _get_runner(self) -> Runner:
         """
         Get or create the ADK Runner.
-
-        The runner uses the weather agent.
 
         Returns:
             Runner: ADK Runner instance
@@ -41,11 +38,11 @@ class AIService:
                 app_name=settings.APP_NAME,
                 session_service=self.session_service,
             )
-
-            logger.info('Created ADK Runner with weather agent')
+            logger.info(f'Initialised ADK Runner for app={settings.APP_NAME}')
 
         return self._runner
 
+    @observe
     async def run(
         self,
         session_id: UUID,
@@ -66,70 +63,82 @@ class AIService:
         logger.info(f'Processing message for session {session_id}, user {user_id}')
 
         runner = self._get_runner()
-
-        # Create ADK message object
         message = Content(role='user', parts=[Part(text=user_message)])
 
-        # Run agent - run_async returns an async generator, consume it to get final response
-        adk_response = None
-        async for response in runner.run_async(
+        messages = []
+        async for event in runner.run_async(
             session_id=str(session_id),
             new_message=message,
             user_id=user_id,
         ):
-            adk_response = response  # Get the final response
+            if event.is_final_response():
+                messages.append(
+                    Message(
+                        id=uuid4(),
+                        content=event.content.parts[0].text,
+                        role='assistant',
+                        metadata={'agent': root_agent.name},
+                    )
+                )
 
-        if adk_response is None:
-            raise RuntimeError('No response from agent')
+        if not messages:
+            raise RuntimeError('No final response from agent')
 
-        # Process response - extract text from Event
-        messages = self._process_response(adk_response)
+        langfuse = get_langfuse_client()
+        langfuse.update_current_trace(
+            user_id=user_id,
+            session_id=str(session_id),
+            input=user_message,
+            output=messages[0].content,
+        )
 
-        logger.info(f'Generated {len(messages)} messages for session {session_id}')
+        logger.info(f'Generated message for session {session_id}')
         return messages
 
-    def _process_response(self, adk_response) -> list[Message]:
+    @observe
+    async def run_stream(
+        self,
+        session_id: UUID,
+        user_message: str,
+        user_id: str,
+    ) -> AsyncGenerator[StreamChunk, None]:
         """
-        Process ADK Event response and convert to domain Messages.
+        Generate streaming AI response for the given user message.
 
         Args:
-            adk_response: Event object from ADK Runner
+            session_id: The ID of the conversation session
+            user_message: The user's message
+            user_id: The ID of the user making the request
 
-        Returns:
-            list[Message]: Domain message objects
+        Yields:
+            StreamChunk: Content chunks with metadata
         """
-        messages = []
+        logger.info(f'Processing streaming message for session {session_id}, user {user_id}')
 
-        # Only process final responses
-        if not adk_response.is_final_response():
-            return messages
+        runner = self._get_runner()
 
-        # Extract text from Event content
-        if hasattr(adk_response, 'content') and adk_response.content:
-            content = adk_response.content
+        message = Content(role='user', parts=[Part(text=user_message)])
+        full_output_message = ''
+        async for event in runner.run_async(
+            session_id=str(session_id),
+            new_message=message,
+            user_id=user_id,
+            run_config=RunConfig(streaming_mode=StreamingMode.SSE),
+        ):
+            if hasattr(event, 'content') and event.content:
+                if hasattr(event.content, 'parts') and event.content.parts:
+                    for part in event.content.parts:
+                        if hasattr(part, 'text') and part.text:
+                            full_output_message += part.text
+                            yield StreamChunk(content=part.text, done=False)
 
-            # Extract text from Content object's parts
-            content_text = ''
-            if hasattr(content, 'parts') and content.parts:
-                # Get text from the first part with text
-                for part in content.parts:
-                    if hasattr(part, 'text') and part.text:
-                        content_text = part.text
-                        break
+        yield StreamChunk(content='', done=True)
+        logger.info(f'Stream completed for session {session_id}')
 
-            # Determine role from content
-            role = content.role if hasattr(content, 'role') else 'assistant'
-            # Map 'model' role to 'assistant' for API compatibility
-            if role == 'model':
-                role = 'assistant'
-
-            messages.append(
-                Message(
-                    id=uuid4(),
-                    content=content_text,
-                    role=role,
-                    metadata={'agent': 'weather_assistant'},
-                )
-            )
-
-        return messages
+        langfuse = get_langfuse_client()
+        langfuse.update_current_trace(
+            user_id=user_id,
+            session_id=str(session_id),
+            input=user_message,
+            output=full_output_message,
+        )
