@@ -42,3 +42,9 @@ class MessageSchema(BaseModel):
 class ChatResponse(BaseModel):
     session_id: str = Field(..., description='Session ID for this conversation')
     messages: list[MessageSchema] = Field(..., description='Messages in this exchange')
+
+
+class ChatStreamChunk(BaseModel):
+    content: str = Field(..., description='Content chunk')
+    done: bool = Field(default=False, description='Whether this is the final chunk')
+    metadata: dict[str, Any] | None = Field(default=None, description='Optional metadata')
