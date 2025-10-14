@@ -71,6 +71,7 @@ The backend implementation exposes endpoints that facilitate:
   # $ pwd
   # path/to/ai-assistant
   $ make adk-web
+  ```
 
   The UI will launch at http://localhost:8000 where you can:
   - Chat with agents interactively
