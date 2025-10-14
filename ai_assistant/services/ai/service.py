@@ -48,7 +48,7 @@ class AIService:
         session_id: UUID,
         user_message: str,
         user_id: str,
-    ) -> list[Message]:
+    ) -> Message:
         """
         Generate AI response for the given user message.
 
@@ -65,23 +65,23 @@ class AIService:
         runner = self._get_runner()
         message = Content(role='user', parts=[Part(text=user_message)])
 
-        messages = []
         async for event in runner.run_async(
             session_id=str(session_id),
             new_message=message,
             user_id=user_id,
         ):
             if event.is_final_response():
-                messages.append(
-                    Message(
-                        id=uuid4(),
-                        content=event.content.parts[0].text,
-                        role='assistant',
-                        metadata={'agent': root_agent.name},
-                    )
+                final_message = Message(
+                    id=uuid4(),
+                    content=event.content.parts[0].text,
+                    role='assistant',
+                    metadata={'session_id': session_id},
                 )
+                # Do not break, since OpenTelemetry wraps the async generator with tracing context
+                # By fully consuming the generator (not breaking), OpenTelemetry can properly
+                # detach contexts
 
-        if not messages:
+        if not final_message:
             raise RuntimeError('No final response from agent')
 
         langfuse = get_langfuse_client()
@@ -89,11 +89,11 @@ class AIService:
             user_id=user_id,
             session_id=str(session_id),
             input=user_message,
-            output=messages[0].content,
+            output=final_message.content,
         )
 
         logger.debug(f'Generated message for session {session_id}')
-        return messages
+        return final_message
 
     @observe
     async def run_stream(
@@ -116,8 +116,9 @@ class AIService:
         logger.debug(f'Processing streaming message for session {session_id}, user {user_id}')
 
         runner = self._get_runner()
-
         message = Content(role='user', parts=[Part(text=user_message)])
+
+        message_id = uuid4()
         full_output_message = ''
         async for event in runner.run_async(
             session_id=str(session_id),
@@ -130,9 +131,22 @@ class AIService:
                     for part in event.content.parts:
                         if hasattr(part, 'text') and part.text:
                             full_output_message += part.text
-                            yield StreamChunk(content=part.text, done=False)
+                            yield StreamChunk(
+                                id=message_id,
+                                role='assistant',
+                                content=part.text,
+                            )
 
-        yield StreamChunk(content='', done=True)
+        # Final chunk with metadata
+        yield StreamChunk(
+            id=message_id,
+            role='assistant',
+            content='',
+            metadata={
+                'session_id': str(session_id),
+            },
+        )
+
         logger.debug(f'Stream completed for session {session_id}')
 
         langfuse = get_langfuse_client()

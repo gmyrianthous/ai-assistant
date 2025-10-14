@@ -2,28 +2,27 @@ import logging
 from typing import Annotated
 
 from fastapi import Depends
-from fastapi import Request
 
 from ai_assistant.services.ai.adk.session_factory import ADKSessionService
+from ai_assistant.services.ai.adk.session_factory import (
+    get_session_service as _get_session_service,
+)
 from ai_assistant.services.ai.service import AIService
 
 logger = logging.getLogger(__name__)
 
 
-def get_session_service(request: Request) -> ADKSessionService:
+def get_session_service() -> ADKSessionService:
     """
-    Get the singleton ADK session service instance from app state.
+    Get the singleton ADK session service instance.
 
     This session service is initialized once during application startup
     and shared across all requests for performance and consistency.
 
-    Args:
-        request: The FastAPI request object.
-
     Returns:
         ADKSessionService: The singleton session service instance.
     """
-    return request.app.state.session_service
+    return _get_session_service()
 
 
 def get_ai_service(

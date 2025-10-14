@@ -18,7 +18,7 @@ from ai_assistant.common.settings import settings
 from ai_assistant.exceptions import AppException
 from ai_assistant.exceptions import AuthorizationException
 from ai_assistant.exceptions import NotFoundException
-from ai_assistant.services.ai.adk.session_factory import create_session_service
+from ai_assistant.services.ai.adk.session_factory import initialize_session_service
 
 logging.config.fileConfig(
     Path(__file__).parent / '../../logging.conf', disable_existing_loggers=False
@@ -47,11 +47,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     GoogleADKInstrumentor().instrument()
     logger.info('OpenTelemetry instrumentation for Google ADK initialised')
 
-    # Initialise session service
+    # Initialise session service singleton
     logger.info('Starting session service initialisation...')
-    session_service = create_session_service()
-    app.state.session_service = session_service
-    logger.info(f'Initialised session service: {type(session_service).__name__}')
+    initialize_session_service()
+    logger.info('Session service initialised')
 
     # Initialise langfuse client
     logger.info('Starting langfuse client initialisation...')
