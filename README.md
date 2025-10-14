@@ -30,7 +30,7 @@ The backend implementation exposes endpoints that facilitate:
  It is possible to run agents in isolation and interact with them via a User Interface, 
  specifically using `adk web` that is part of the Agent Development Kit.
 
-  ### Development Architecture
+  #### Development Architecture
   The codebase is structured to support a **dual-mode architecture** that enables both isolated 
   agent development and production service deployment:
 
@@ -62,7 +62,7 @@ The backend implementation exposes endpoints that facilitate:
   - Once satisfied, the agent is ready for API integration without modification
   - Session state and conversation history work identically in both modes
 
-  ### Running ADK Web
+  #### Running ADK Web
 
   To spin up the ADK web User Interface, simply run the following command from the top-level 
   directory:
