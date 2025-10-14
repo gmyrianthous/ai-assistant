@@ -1,49 +1,18 @@
-from unittest.mock import AsyncMock
-from unittest.mock import Mock
-
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
+from google.adk.sessions import InMemorySessionService
 
-from ai_assistant.repository.session import SessionRepository
-from ai_assistant.services.ai.providers.base import AIProvider
-from ai_assistant.services.ai.service import AIService
-from ai_assistant.services.session import SessionService
-
-
-@pytest.fixture
-def session_service(db_session: AsyncSession) -> SessionService:
-    """
-    Create a SessionService instance for testing.
-
-    Args:
-        db_session (AsyncSession): The test database session.
-
-    Returns:
-        (SessionService): The session service instance.
-    """
-    session_repository = SessionRepository(session=db_session)
-    return SessionService(session_repository=session_repository)
+from ai_assistant.api.dependencies import get_session_service
+from ai_assistant.api.main import app
+from ai_assistant.services.ai.adk import session_factory
 
 
-@pytest.fixture
-def ai_provider() -> AIProvider:
-    provider = Mock(spec=AIProvider)
-    provider.generate_response = AsyncMock()
-    provider.generate_stream_response = Mock()
-    provider.cleanup = AsyncMock()
-    return provider
+@pytest.fixture(scope='function', autouse=True)
+def override_session_service():
+    session_factory._session_service = None
+    test_session_service = InMemorySessionService()
+    app.dependency_overrides[get_session_service] = lambda: test_session_service
 
+    yield test_session_service
 
-@pytest.fixture
-def ai_service(db_session: AsyncSession, ai_provider: AIProvider) -> AIService:
-    """
-    Create an AIService instance for testing.
-
-    Args:
-        db_session (AsyncSession): The test database session.
-        ai_provider (Mock): The mock AI provider.
-
-    Returns:
-        (AIService): The AI service instance.
-    """
-    return AIService(db_session=db_session, provider=ai_provider)
+    app.dependency_overrides.clear()
+    session_factory._session_service = None
