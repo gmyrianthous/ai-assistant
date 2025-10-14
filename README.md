@@ -27,11 +27,64 @@ The backend implementation exposes endpoints that facilitate:
 
 
 ### 🖥️ User Interface
+ It is possible to run agents in isolation and interact with them via a User Interface, 
+ specifically using `adk web` that is part of the Agent Development Kit.
 
+  ### Development Architecture
+  The codebase is structured to support a **dual-mode architecture** that enables both isolated 
+  agent development and production service deployment:
 
-> **_Note:_**  The default model used in the boilerplate code is set to Google Gemini on Vertex AI,
-> however, the code structure lets you choose the language model of your preference with minimal 
-> changes required, due to the abstractions put in place.
+  ```shell
+  ai_assistant/services/ai/adk/agents/
+  └── weather_assistant/
+      ├── init.py       # Exports root_agent for adk web
+      └── agent.py          # Agent definition with tools and config
+  ```
+
+  This structure provides several key advantages:
+
+  **1. Isolated Development & Testing**
+  - Develop and test agents independently without running the full API service
+  - Rapidly iterate on prompts, tools, and configurations using the interactive UI
+  - Debug agent behavior in real-time with immediate visual feedback
+
+  **2. Zero Configuration Deployment**
+  - Agents developed locally are automatically discovered by the service layer
+  - No code changes needed when moving from development to production
+  - The same agent definition works in both `adk web` and the FastAPI service
+
+  **3. Consistent Agent Interface**
+  - Single source of truth for agent configuration (prompts, models, tools)
+  - Reduces discrepancies between development and production environments
+
+  **4. Streamlined Workflow**
+  - Test agent responses and tool execution in `adk web`
+  - Once satisfied, the agent is ready for API integration without modification
+  - Session state and conversation history work identically in both modes
+
+  ### Running ADK Web
+
+  To spin up the ADK web User Interface, simply run the following command from the top-level 
+  directory:
+
+  ```shell
+  # $ pwd
+  # path/to/ai-assistant
+  $ make adk-web
+
+  The UI will launch at http://localhost:8000 where you can:
+  - Chat with agents interactively
+  - View tool execution and results
+  - Inspect session state and conversation history
+  - Test different prompts and configurations in real-time
+
+  This development experience ensures that what you build and test locally will behave identically 
+  when deployed as a service.
+
+> **_Note:_**  You must use the make adk-web command instead of running adk web directly from 
+> the CLI. The Makefile configures both the PYTHONPATH environment variable and the correct 
+> agents directory path to ensure agents are discoverable. Running adk web without this
+> configuration will result in your agents not being found.
 
 ### ♾️ CI/CD
 The project includes a comprehensive CI/CD pipeline implemented with GitHub Actions that ensures 
