@@ -37,8 +37,8 @@ The backend implementation exposes endpoints that facilitate:
   ```shell
   ai_assistant/services/ai/adk/agents/
   └── weather_assistant/
-      ├── init.py       # Exports root_agent for adk web
-      └── agent.py          # Agent definition with tools and config
+      ├── init.py
+      └── agent.py
   ```
 
   This structure provides several key advantages:
