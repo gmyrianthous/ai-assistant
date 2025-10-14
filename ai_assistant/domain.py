@@ -8,11 +8,12 @@ from pydantic import BaseModel
 class Message(BaseModel):
     id: UUID
     content: str
-    role: Literal['user', 'assistant', 'system']
+    role: Literal['user', 'assistant']
     metadata: dict[str, Any] | None = None
 
 
 class StreamChunk(BaseModel):
+    id: UUID
+    role: Literal['user', 'assistant'] = 'assistant'
     content: str
-    done: bool = False
     metadata: dict[str, Any] | None = None
