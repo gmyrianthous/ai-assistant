@@ -82,9 +82,9 @@ The backend implementation exposes endpoints that facilitate:
   This development experience ensures that what you build and test locally will behave identically 
   when deployed as a service.
 
-> **_Note:_**  You must use the make adk-web command instead of running adk web directly from 
-> the CLI. The Makefile configures both the PYTHONPATH environment variable and the correct 
-> agents directory path to ensure agents are discoverable. Running adk web without this
+> **_Note:_**  You must use the `make adk-web` command instead of running adk web directly from 
+> the CLI, via `adk web`. The Makefile configures both the PYTHONPATH environment variable and 
+> the correct agents directory path to ensure agents are discoverable. Running adk web without this
 > configuration will result in your agents not being found.
 
 ### ♾️ CI/CD
