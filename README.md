@@ -4,9 +4,9 @@ and Agent Development Kit (ADK). The template aims to provide a boilerplate solu
 batteries included:
 - API (FastAPI)
 - AI Agents (Agent Development Kit)
-- User Interface (`adk web`)
-- Monitoring & Observability (Grafana, LangFuse)
-- Model Evaluations (LangFuse)
+- User Interface (served through ADK's `adk web`)
+- Monitoring & Observability (Grafana, Langfuse)
+- Model Evaluations (Langfuse)
 - CI/CD (GitHub Actions)
 
 
