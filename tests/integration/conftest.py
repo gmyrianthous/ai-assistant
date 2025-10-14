@@ -6,7 +6,6 @@ from httpx import AsyncClient
 
 from ai_assistant.api.main import app
 from tests.fixtures.database import *  # noqa
-from tests.fixtures.repository import *  # noqa
 
 
 @pytest.fixture(scope='function')
