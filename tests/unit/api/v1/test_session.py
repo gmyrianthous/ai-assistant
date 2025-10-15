@@ -20,8 +20,8 @@ class TestCreateSession:
     async def test_create_session_success(self) -> None:
         # arrange
         session_service = AsyncMock(spec=ADKSessionService)
-        user_id = str(uuid4())
-        session_id = str(uuid4())
+        user_id = uuid4()
+        session_id = uuid4()
         request = SessionRequest(user_id=user_id)
 
         mock_session = MagicMock()
@@ -33,7 +33,7 @@ class TestCreateSession:
 
         # assert
         assert isinstance(result, SessionResponse)
-        assert str(result.session_id) == session_id
+        assert result.session_id == session_id
         assert result.intro_message == 'Hello, how can I help you today?'
         session_service.create_session.assert_called_once()
 

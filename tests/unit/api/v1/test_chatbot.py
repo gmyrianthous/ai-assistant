@@ -12,8 +12,8 @@ class TestChatEndpoint:
     async def test_chat_success(self) -> None:
         # arrange
         ai_service = AsyncMock(spec=AIService)
-        session_id = str(uuid4())
-        user_id = str(uuid4())
+        session_id = uuid4()
+        user_id = uuid4()
         user_message = 'Hello, AI!'
         request = ChatRequest(
             session_id=session_id,
@@ -47,8 +47,8 @@ class TestChatEndpoint:
     async def test_chat_with_metadata(self) -> None:
         # arrange
         ai_service = AsyncMock(spec=AIService)
-        session_id = str(uuid4())
-        user_id = str(uuid4())
+        session_id = uuid4()
+        user_id = uuid4()
         user_message = 'Test with metadata'
         request = ChatRequest(
             session_id=session_id,
@@ -73,8 +73,8 @@ class TestChatEndpoint:
     async def test_message_schema_from_domain_model_conversion(self) -> None:
         # arrange
         ai_service = AsyncMock(spec=AIService)
-        session_id = str(uuid4())
-        user_id = str(uuid4())
+        session_id = uuid4()
+        user_id = uuid4()
         message_id = uuid4()
         request = ChatRequest(
             session_id=session_id,
@@ -102,8 +102,8 @@ class TestChatEndpoint:
     async def test_chat_preserves_message_ids(self) -> None:
         # arrange
         ai_service = AsyncMock(spec=AIService)
-        session_id = str(uuid4())
-        user_id = str(uuid4())
+        session_id = uuid4()
+        user_id = uuid4()
         assistant_msg_id = uuid4()
         request = ChatRequest(
             session_id=session_id,

@@ -11,8 +11,8 @@ from ai_assistant.domain import Message as DomainMessage
 
 class ChatRequest(BaseModel):
     message: str = Field(..., description="The user's message")
-    session_id: str = Field(..., description='Session ID for continuing a conversation')
-    user_id: str = Field(..., description='User ID for tracking conversations across sessions')
+    session_id: UUID = Field(..., description='Session ID for continuing a conversation')
+    user_id: UUID = Field(..., description='User ID for tracking conversations across sessions')
 
 
 class MessageSchema(BaseModel):

@@ -47,7 +47,7 @@ class AIService:
         self,
         session_id: UUID,
         user_message: str,
-        user_id: str,
+        user_id: UUID,
     ) -> Message:
         """
         Generate AI response for the given user message.
@@ -68,7 +68,7 @@ class AIService:
         async for event in runner.run_async(
             session_id=str(session_id),
             new_message=message,
-            user_id=user_id,
+            user_id=str(user_id),
         ):
             if event.is_final_response():
                 text_content = ''
@@ -90,7 +90,7 @@ class AIService:
 
         langfuse = get_langfuse_client()
         langfuse.update_current_trace(
-            user_id=user_id,
+            user_id=str(user_id),
             session_id=str(session_id),
             input=user_message,
             output=final_message.content,
@@ -104,7 +104,7 @@ class AIService:
         self,
         session_id: UUID,
         user_message: str,
-        user_id: str,
+        user_id: UUID,
     ) -> AsyncGenerator[StreamChunk, None]:
         """
         Generate streaming AI response for the given user message.
@@ -127,7 +127,7 @@ class AIService:
         async for event in runner.run_async(
             session_id=str(session_id),
             new_message=message,
-            user_id=user_id,
+            user_id=str(user_id),
             run_config=RunConfig(streaming_mode=StreamingMode.SSE),
         ):
             if hasattr(event, 'content') and event.content:
@@ -155,7 +155,7 @@ class AIService:
 
         langfuse = get_langfuse_client()
         langfuse.update_current_trace(
-            user_id=user_id,
+            user_id=str(user_id),
             session_id=str(session_id),
             input=user_message,
             output=full_output_message,
