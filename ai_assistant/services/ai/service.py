@@ -71,9 +71,13 @@ class AIService:
             user_id=user_id,
         ):
             if event.is_final_response():
+                text_content = ''
+                if event.content and event.content.parts:
+                    text_content = event.content.parts[0].text or ''
+
                 final_message = Message(
                     id=uuid4(),
-                    content=event.content.parts[0].text,
+                    content=text_content,
                     role='assistant',
                     metadata={'session_id': session_id},
                 )
