@@ -37,7 +37,7 @@ def create_session_service() -> ADKSessionService:
             location=settings.GOOGLE_CLOUD_LOCATION,
         )
 
-    logger.info('Using InMemorySessionService for development')
+    logger.info(f'Using InMemorySessionService for `{environment}` environment.')
     return InMemorySessionService()
 
 
