@@ -49,7 +49,7 @@ async def create_session(
     intro_message = 'Hello, how can I help you today?'
 
     logger.debug(f'Session {session.id} created successfully for user {body.user_id}')
-    return SessionResponse(session_id=session.id, intro_message=intro_message)
+    return SessionResponse(session_id=uuid.UUID(session.id), intro_message=intro_message)
 
 
 @router.get(
