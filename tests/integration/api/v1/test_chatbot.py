@@ -1,111 +1,210 @@
 import uuid
-from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
-import pytest
-from httpx import AsyncClient
+from fastapi.testclient import TestClient
+from google.genai.types import Content
+from google.genai.types import Part
 
-from ai_assistant.api.dependencies import get_ai_service
 from ai_assistant.api.main import app
-from ai_assistant.domain import Message
-from ai_assistant.services.ai.service import AIService
+
+client = TestClient(app)
 
 
-class TestChatEndpoint:
-    async def test_chat_success(self, test_client: AsyncClient, ai_service: AIService) -> None:
+class TestChatPost:
+    @patch('ai_assistant.services.ai.service.Runner')
+    def test_chat_success(self, mock_runner_class: MagicMock) -> None:
         # arrange
-        session_id = str(uuid.uuid4())
-        user_message = 'Hello, AI assistant!'
-        request_payload = {'session_id': session_id, 'message': user_message}
+        mock_event = MagicMock()
+        mock_event.is_final_response.return_value = True
+        mock_event.content = Content(
+            role='model',
+            parts=[Part(text='The weather in London is sunny with 20°C.')],
+        )
+
+        async def mock_run_async(*args, **kwargs):
+            yield mock_event
+
+        mock_runner_instance = MagicMock()
+        mock_runner_instance.run_async = mock_run_async
+        mock_runner_class.return_value = mock_runner_instance
+
+        user_id = str(uuid.uuid4())
+        session_response = client.post('/api/v1/chatbot/session', json={'user_id': user_id})
+        session_id = session_response.json()['session_id']
+
+        request_payload = {
+            'message': 'What is the weather in London?',
+            'session_id': session_id,
+            'user_id': user_id,
+        }
         expected_status = 200
 
-        # Mock AI service response
-        domain_messages = [
-            Message(
-                id=uuid.uuid4(),
-                content=user_message,
-                role='user',
-                metadata=None,
-            ),
-            Message(
-                id=uuid.uuid4(),
-                content='Hello! How can I help you today?',
-                role='assistant',
-                metadata={'provider': 'test', 'session_id': session_id},
-            ),
-        ]
-        ai_service.generate_response = AsyncMock(return_value=domain_messages)
-
-        app.dependency_overrides[get_ai_service] = lambda: ai_service
-
         # act
-        result = await test_client.post('/api/v1/chatbot/chat', json=request_payload)
-
-        # cleanup
-        app.dependency_overrides.clear()
+        result = client.post('/api/v1/chatbot/chat', json=request_payload)
 
         # assert
         assert result.status_code == expected_status
         response_data = result.json()
-        assert 'messages' in response_data
-        assert len(response_data['messages']) == 2
+        assert 'id' in response_data
+        assert 'content' in response_data
+        assert 'role' in response_data
+        assert response_data['role'] == 'assistant'
+        assert response_data['content'] == 'The weather in London is sunny with 20°C.'
 
-        user_msg = response_data['messages'][0]
-        assert user_msg['content'] == user_message
-        assert user_msg['role'] == 'user'
-        assert user_msg['metadata'] is None
-        uuid.UUID(user_msg['id'])
-
-        assistant_msg = response_data['messages'][1]
-        assert assistant_msg['content'] == 'Hello! How can I help you today?'
-        assert assistant_msg['role'] == 'assistant'
-        assert assistant_msg['metadata']['provider'] == 'test'
-        assert assistant_msg['metadata']['session_id'] == session_id
-        uuid.UUID(assistant_msg['id'])  # Validate UUID format
-
-    async def test_chat_invalid_session_id(self, test_client: AsyncClient) -> None:
+    def test_chat_missing_message(self) -> None:
         # arrange
-        invalid_session_id = 'not-a-valid-uuid'
-        request_payload = {'session_id': invalid_session_id, 'message': 'Hello'}
+        user_id = str(uuid.uuid4())
+        session_response = client.post('/api/v1/chatbot/session', json={'user_id': user_id})
+        session_id = session_response.json()['session_id']
+
+        request_payload = {
+            'session_id': session_id,
+            'user_id': user_id,
+        }
         expected_status = 422
 
         # act
-        result = await test_client.post('/api/v1/chatbot/chat', json=request_payload)
-        response_data = result.json()
-
-        # assert
-        assert result.status_code == expected_status
-        assert 'detail' in response_data
-
-    @pytest.mark.parametrize(
-        'request_payload',
-        [
-            pytest.param({'message': 'Hello'}, id='missing session_id'),
-            pytest.param({'session_id': str(uuid.uuid4())}, id='missing message'),
-            pytest.param({'session_id': 'invalidId', 'message': 'Hello'}, id='invalid session_id'),
-        ],
-    )
-    async def test_chat_invalid_request_payload(
-        self,
-        test_client: AsyncClient,
-        request_payload: dict,
-    ) -> None:
-        # arrange
-        expected_status = 422
-
-        # act
-        result = await test_client.post('/api/v1/chatbot/chat', json=request_payload)
+        result = client.post('/api/v1/chatbot/chat', json=request_payload)
 
         # assert
         assert result.status_code == expected_status
 
-    async def test_chat_missing_message(self, test_client: AsyncClient) -> None:
+    def test_chat_missing_session_id(self) -> None:
+        # arrange
+        user_id = str(uuid.uuid4())
+        request_payload = {
+            'message': 'Hello',
+            'user_id': user_id,
+        }
+        expected_status = 422
+
+        # act
+        result = client.post('/api/v1/chatbot/chat', json=request_payload)
+
+        # assert
+        assert result.status_code == expected_status
+
+    def test_chat_missing_user_id(self) -> None:
         # arrange
         session_id = str(uuid.uuid4())
-        request_payload = {'session_id': session_id}
+        request_payload = {
+            'message': 'Hello',
+            'session_id': session_id,
+        }
         expected_status = 422
 
         # act
-        result = await test_client.post('/api/v1/chatbot/chat', json=request_payload)
+        result = client.post('/api/v1/chatbot/chat', json=request_payload)
+
+        # assert
+        assert result.status_code == expected_status
+
+
+class TestChatStreamPost:
+    @patch('ai_assistant.services.ai.service.Runner')
+    def test_chat_stream_success(self, mock_runner_class: MagicMock) -> None:
+        # arrange
+        mock_events = [
+            MagicMock(
+                is_final_response=lambda: False,
+                content=Content(role='model', parts=[Part(text='The ')]),
+            ),
+            MagicMock(
+                is_final_response=lambda: False,
+                content=Content(role='model', parts=[Part(text='weather ')]),
+            ),
+            MagicMock(
+                is_final_response=lambda: True,
+                content=Content(role='model', parts=[Part(text='is sunny.')]),
+            ),
+        ]
+
+        async def mock_run_async(*args, **kwargs):
+            for event in mock_events:
+                yield event
+
+        mock_runner_instance = MagicMock()
+        mock_runner_instance.run_async = mock_run_async
+        mock_runner_class.return_value = mock_runner_instance
+        # arrange
+        user_id = str(uuid.uuid4())
+        session_response = client.post('/api/v1/chatbot/session', json={'user_id': user_id})
+        session_id = session_response.json()['session_id']
+
+        request_payload = {
+            'message': 'What is the weather in Paris?',
+            'session_id': session_id,
+            'user_id': user_id,
+        }
+        expected_status = 200
+
+        # act
+        with client.stream('POST', '/api/v1/chatbot/chat/stream', json=request_payload) as result:
+            # assert
+            assert result.status_code == expected_status
+            assert result.headers['content-type'] == 'text/event-stream; charset=utf-8'
+
+            # Collect all chunks
+            chunks = []
+            for line in result.iter_lines():
+                if line.startswith('data: '):
+                    chunks.append(line)
+
+            # Verify we received chunks (3 content + 1 metadata chunk)
+            assert len(chunks) == 4
+
+            # Verify last chunk has metadata
+            import json
+
+            last_chunk_data = json.loads(chunks[-1].replace('data: ', ''))
+            assert 'metadata' in last_chunk_data
+            assert last_chunk_data['metadata']['session_id'] == session_id
+
+    def test_chat_stream_missing_message(self) -> None:
+        # arrange
+        user_id = str(uuid.uuid4())
+        session_response = client.post('/api/v1/chatbot/session', json={'user_id': user_id})
+        session_id = session_response.json()['session_id']
+
+        request_payload = {
+            'session_id': session_id,
+            'user_id': user_id,
+        }
+        expected_status = 422
+
+        # act
+        result = client.post('/api/v1/chatbot/chat/stream', json=request_payload)
+
+        # assert
+        assert result.status_code == expected_status
+
+    def test_chat_stream_missing_session_id(self) -> None:
+        # arrange
+        user_id = str(uuid.uuid4())
+        request_payload = {
+            'message': 'Hello',
+            'user_id': user_id,
+        }
+        expected_status = 422
+
+        # act
+        result = client.post('/api/v1/chatbot/chat/stream', json=request_payload)
+
+        # assert
+        assert result.status_code == expected_status
+
+    def test_chat_stream_missing_user_id(self) -> None:
+        # arrange
+        session_id = str(uuid.uuid4())
+        request_payload = {
+            'message': 'Hello',
+            'session_id': session_id,
+        }
+        expected_status = 422
+
+        # act
+        result = client.post('/api/v1/chatbot/chat/stream', json=request_payload)
 
         # assert
         assert result.status_code == expected_status

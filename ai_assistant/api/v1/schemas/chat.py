@@ -4,6 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 from pydantic import Field
+from pydantic import field_validator
 
 from ai_assistant.domain import Message as DomainMessage
 
@@ -19,6 +20,16 @@ class MessageSchema(BaseModel):
     content: str
     role: Literal['user', 'assistant']
     metadata: dict[str, Any] | None = None
+
+    @field_validator('role', mode='before')
+    @classmethod
+    def normalize_role(cls, v: str) -> str:
+        """Normalize role values from ADK to API schema."""
+        role_mapping = {
+            'model': 'assistant',
+            'system': 'assistant',
+        }
+        return role_mapping.get(v, v)
 
     @classmethod
     def from_domain_model(cls, domain_message: DomainMessage) -> 'MessageSchema':
