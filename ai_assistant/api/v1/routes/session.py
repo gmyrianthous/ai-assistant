@@ -129,11 +129,13 @@ async def get_session(
             if hasattr(event.content, 'parts') and event.content.parts:
                 for part in event.content.parts:
                     if hasattr(part, 'text') and part.text:
+                        # Get role with type safety - MessageSchema validator handles normalization
+                        role = event.content.role if event.content.role else 'assistant'
                         messages.append(
                             MessageSchema(
                                 id=uuid.uuid4(),
                                 content=part.text,
-                                role=event.content.role,
+                                role=role,  # type: ignore[arg-type]
                             )
                         )
 
