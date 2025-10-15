@@ -33,7 +33,7 @@ def create_session_service() -> ADKSessionService:
             f'and location `{settings.GOOGLE_CLOUD_LOCATION}`.'
         )
         return VertexAiSessionService(
-            project_id=settings.GOOGLE_CLOUD_PROJECT,
+            project=settings.GOOGLE_CLOUD_PROJECT,
             location=settings.GOOGLE_CLOUD_LOCATION,
         )
 
