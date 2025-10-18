@@ -1,0 +1,32 @@
+version: 2
+
+multi-ecosystem-groups:
+  python:
+    schedule:
+      interval: "daily"
+      time: "09:00"
+    insecure-external-code-execution: allow
+    open-pull-requests-limit: 5
+
+updates:
+  - package-ecosystem: "uv"
+    directory: "/"
+    multi-ecosystem-group: python
+    patterns: ["*"]    
+
+  - package-ecosystem: "pip"
+    directory: "/"
+    multi-ecosystem-group: python    
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    open-pull-requests-limit: 5
+    schedule:
+      interval: "daily"
+      time: "09:00"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "09:00"
