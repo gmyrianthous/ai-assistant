@@ -25,7 +25,7 @@ class TestCreateSession:
         request = SessionRequest(user_id=user_id)
 
         mock_session = MagicMock()
-        mock_session.id = session_id
+        mock_session.id = str(session_id)
         session_service.create_session = AsyncMock(return_value=mock_session)
 
         # act

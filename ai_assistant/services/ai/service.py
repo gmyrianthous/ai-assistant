@@ -14,7 +14,7 @@ from ai_assistant.common.clients.langfuse import get_langfuse_client
 from ai_assistant.common.settings import settings
 from ai_assistant.domain import Message
 from ai_assistant.domain import StreamChunk
-from ai_assistant.services.ai.adk.agents.weather_assistant import root_agent
+from ai_assistant.services.ai.adk.agents.orchestrator.agent import orchestrator_agent
 from ai_assistant.services.ai.adk.session_factory import ADKSessionService
 
 logger = logging.getLogger(__name__)
@@ -33,8 +33,9 @@ class AIService:
             Runner: ADK Runner instance
         """
         if self._runner is None:
+            logger.debug('Initialising ADK Runner with orchestrator agent...')
             self._runner = Runner(
-                agent=root_agent,
+                agent=orchestrator_agent,
                 app_name=settings.APP_NAME,
                 session_service=self.session_service,
             )
@@ -130,7 +131,11 @@ class AIService:
             user_id=str(user_id),
             run_config=RunConfig(streaming_mode=StreamingMode.SSE),
         ):
-            if hasattr(event, 'content') and event.content:
+            # Skip final response to avoid duplication - final response contains complete text
+            # but we're already streaming the chunks incrementally
+            is_final = event.is_final_response() if hasattr(event, 'is_final_response') else False
+
+            if hasattr(event, 'content') and event.content and not is_final:
                 if hasattr(event.content, 'parts') and event.content.parts:
                     for part in event.content.parts:
                         if hasattr(part, 'text') and part.text:
@@ -141,7 +146,6 @@ class AIService:
                                 content=part.text,
                             )
 
-        # Final chunk with metadata
         yield StreamChunk(
             id=message_id,
             role='assistant',
