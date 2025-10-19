@@ -1,166 +1,102 @@
 import logging
+import uuid
 from collections.abc import AsyncGenerator
-from uuid import UUID
-from uuid import uuid4
 
-from google.adk.agents.run_config import StreamingMode
-from google.adk.runners import RunConfig
-from google.adk.runners import Runner
-from google.genai.types import Content
-from google.genai.types import Part
 from langfuse import observe
 
 from ai_assistant.common.clients.langfuse import get_langfuse_client
-from ai_assistant.common.settings import settings
-from ai_assistant.domain import Message
-from ai_assistant.domain import StreamChunk
-from ai_assistant.services.ai.adk.agents.orchestrator.agent import orchestrator_agent
+from ai_assistant.domain import Content
 from ai_assistant.services.ai.adk.session_factory import ADKSessionService
+from ai_assistant.services.ai.runner import AgentRunner
 
 logger = logging.getLogger(__name__)
 
 
 class AIService:
-    def __init__(self, session_service: ADKSessionService) -> None:
+    def __init__(
+        self,
+        session_service: ADKSessionService,
+        agent_runner: AgentRunner | None = None,
+    ) -> None:
         self.session_service = session_service
-        self._runner: Runner | None = None
-
-    def _get_runner(self) -> Runner:
-        """
-        Get or create the ADK Runner.
-
-        Returns:
-            Runner: ADK Runner instance
-        """
-        if self._runner is None:
-            logger.debug('Initialising ADK Runner with orchestrator agent...')
-            self._runner = Runner(
-                agent=orchestrator_agent,
-                app_name=settings.APP_NAME,
-                session_service=self.session_service,
-            )
-            logger.info(f'Initialised ADK Runner for app={settings.APP_NAME}')
-
-        return self._runner
+        self.agent_runner = agent_runner or AgentRunner(session_service)
 
     @observe
     async def run(
         self,
-        session_id: UUID,
+        session_id: uuid.UUID,
         user_message: str,
-        user_id: UUID,
-    ) -> Message:
+        user_id: uuid.UUID,
+    ) -> Content:
         """
-        Generate AI response for the given user message.
+        Generate AI response (non-streaming).
 
         Args:
-            session_id: The ID of the conversation session
-            user_message: The user's message
-            user_id: The ID of the user making the request
+            session_id: Conversation session ID
+            user_message: User's message
+            user_id: User ID
 
         Returns:
-            List of messages including user message and AI response(s)
+            Content: Response as Content(type='message', ...)
         """
         logger.debug(f'Processing message for session {session_id}, user {user_id}')
-
-        runner = self._get_runner()
-        message = Content(role='user', parts=[Part(text=user_message)])
-
-        async for event in runner.run_async(
-            session_id=str(session_id),
-            new_message=message,
-            user_id=str(user_id),
-        ):
-            if event.is_final_response():
-                text_content = ''
-                if event.content and event.content.parts:
-                    text_content = event.content.parts[0].text or ''
-
-                final_message = Message(
-                    id=uuid4(),
-                    content=text_content,
-                    role='assistant',
-                    metadata={'session_id': session_id},
-                )
-                # Do not break, since OpenTelemetry wraps the async generator with tracing context
-                # By fully consuming the generator (not breaking), OpenTelemetry can properly
-                # detach contexts
-
-        if not final_message:
-            raise RuntimeError('No final response from agent')
+        response_text = await self.agent_runner.run(
+            session_id=session_id,
+            user_message=user_message,
+            user_id=user_id,
+        )
 
         langfuse = get_langfuse_client()
         langfuse.update_current_trace(
             user_id=str(user_id),
             session_id=str(session_id),
             input=user_message,
-            output=final_message.content,
+            output=response_text,
         )
 
-        logger.debug(f'Generated message for session {session_id}')
-        return final_message
+        return Content(
+            id=uuid.uuid4(),
+            type='message',
+            data={'text': response_text},
+            metadata={'session_id': str(session_id)},
+        )
 
     @observe
     async def run_stream(
         self,
-        session_id: UUID,
+        session_id: uuid.UUID,
         user_message: str,
-        user_id: UUID,
-    ) -> AsyncGenerator[StreamChunk, None]:
+        user_id: uuid.UUID,
+    ) -> AsyncGenerator[Content, None]:
         """
-        Generate streaming AI response for the given user message.
+        Generate streaming AI response.
 
         Args:
-            session_id: The ID of the conversation session
-            user_message: The user's message
-            user_id: The ID of the user making the request
+            session_id(uuid.UUID): Conversation session ID
+            user_message(str): User's message
+            user_id(uuid.UUID): User ID
 
         Yields:
-            StreamChunk: Content chunks with metadata
+            AsyncGenerator[Content, None]: Processed content objects
         """
         logger.debug(f'Processing streaming message for session {session_id}, user {user_id}')
 
-        runner = self._get_runner()
-        message = Content(role='user', parts=[Part(text=user_message)])
-
-        message_id = uuid4()
-        full_output_message = ''
-        async for event in runner.run_async(
-            session_id=str(session_id),
-            new_message=message,
-            user_id=str(user_id),
-            run_config=RunConfig(streaming_mode=StreamingMode.SSE),
+        full_output = ''
+        async for content in self.agent_runner.run_stream(
+            session_id=session_id,
+            user_message=user_message,
+            user_id=user_id,
         ):
-            # Skip final response to avoid duplication - final response contains complete text
-            # but we're already streaming the chunks incrementally
-            is_final = event.is_final_response() if hasattr(event, 'is_final_response') else False
-
-            if hasattr(event, 'content') and event.content and not is_final:
-                if hasattr(event.content, 'parts') and event.content.parts:
-                    for part in event.content.parts:
-                        if hasattr(part, 'text') and part.text:
-                            full_output_message += part.text
-                            yield StreamChunk(
-                                id=message_id,
-                                role='assistant',
-                                content=part.text,
-                            )
-
-        yield StreamChunk(
-            id=message_id,
-            role='assistant',
-            content='',
-            metadata={
-                'session_id': str(session_id),
-            },
-        )
-
-        logger.debug(f'Stream completed for session {session_id}')
+            if content.type == 'message' and 'text' in content.data:
+                full_output += content.data['text']
+            yield content
 
         langfuse = get_langfuse_client()
         langfuse.update_current_trace(
             user_id=str(user_id),
             session_id=str(session_id),
             input=user_message,
-            output=full_output_message,
+            output=full_output,
         )
+
+        logger.debug(f'Stream completed for session {session_id}')

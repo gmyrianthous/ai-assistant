@@ -1,3 +1,5 @@
+from collections.abc import Generator
+
 import pytest
 from google.adk.sessions import InMemorySessionService
 
@@ -7,7 +9,7 @@ from ai_assistant.services.ai.adk import session_factory
 
 
 @pytest.fixture(scope='function', autouse=True)
-def override_session_service():
+def session_service() -> Generator[InMemorySessionService, None, None]:
     session_factory._session_service = None
     test_session_service = InMemorySessionService()
     app.dependency_overrides[get_session_service] = lambda: test_session_service
