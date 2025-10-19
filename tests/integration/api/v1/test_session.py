@@ -73,8 +73,8 @@ class TestSessionGet:
         response_data = result.json()
         assert response_data['session_id'] == session_id
         assert response_data['user_id'] == user_id
-        assert 'messages' in response_data
-        assert isinstance(response_data['messages'], list)
+        assert 'contents' in response_data
+        assert isinstance(response_data['contents'], list)
         assert 'last_update_time' in response_data
 
     def test_get_session_not_found(self) -> None:

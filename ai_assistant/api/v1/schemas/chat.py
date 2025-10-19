@@ -22,7 +22,7 @@ class ContentResponse(BaseModel):
     The 'type' field determines how clients should interpret the 'data' payload.
 
     Examples:
-        ContentResponse(type='message', data={'text': 'Hello world'})
+        ContentResponse(type='message', data={'text': 'Hello world'}, role='model')
         ContentResponse(type='loader', data={'message': 'Processing...', 'show_spinner': True})
         ContentResponse(type='metadata', data={}, metadata={'session_id': '...'})
     """
@@ -30,6 +30,7 @@ class ContentResponse(BaseModel):
     id: UUID
     type: Literal['message', 'loader', 'metadata']
     data: dict[str, Any] = Field(description="Content data payload - structure depends on 'type'")
+    role: str | None = Field(default=None, description="Role from ADK (e.g., 'user', 'model')")
     metadata: dict[str, Any] | None = Field(default=None, description='Additional metadata')
 
     @classmethod
@@ -47,5 +48,6 @@ class ContentResponse(BaseModel):
             id=content.id,
             type=content.type,
             data=content.data,
+            role=content.role,
             metadata=content.metadata,
         )

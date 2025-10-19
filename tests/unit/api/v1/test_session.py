@@ -62,7 +62,7 @@ class TestGetSession:
         assert isinstance(result, SessionDetailResponse)
         assert result.session_id == session_id
         assert result.user_id == user_id
-        assert result.messages == []
+        assert result.contents == []
         session_service.get_session.assert_called_once()
 
     async def test_get_session_not_found(self) -> None:

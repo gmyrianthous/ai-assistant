@@ -3,7 +3,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from ai_assistant.api.v1.schemas.chat import MessageSchema
+from ai_assistant.api.v1.schemas.chat import ContentResponse
 
 
 class SessionRequest(BaseModel):
@@ -20,7 +20,7 @@ class SessionDetailResponse(BaseModel):
     user_id: str
     app_name: str
     state: dict[str, Any]
-    messages: list[MessageSchema]
+    contents: list[ContentResponse]
     last_update_time: float
 
 

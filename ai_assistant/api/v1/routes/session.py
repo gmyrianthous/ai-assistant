@@ -7,7 +7,7 @@ from fastapi import Depends
 from fastapi import status
 
 from ai_assistant.api.dependencies import get_session_service
-from ai_assistant.api.v1.schemas.chat import MessageSchema
+from ai_assistant.api.v1.schemas.chat import ContentResponse
 from ai_assistant.api.v1.schemas.session import SessionDetailResponse
 from ai_assistant.api.v1.schemas.session import SessionListItem
 from ai_assistant.api.v1.schemas.session import SessionListResponse
@@ -122,30 +122,32 @@ async def get_session(
     if not session:
         raise NotFoundException(f'Session {session_id} not found for user {user_id}')
 
-    # Convert events to MessageSchema objects
-    messages = []
+    # Convert events to ContentResponse objects
+    contents = []
     for event in session.events:
         if hasattr(event, 'content') and event.content:
+            role = getattr(event.content, 'role', None)
+
             if hasattr(event.content, 'parts') and event.content.parts:
                 for part in event.content.parts:
                     if hasattr(part, 'text') and part.text:
-                        # Get role with type safety - MessageSchema validator handles normalization
-                        role = event.content.role if event.content.role else 'assistant'
-                        messages.append(
-                            MessageSchema(
+                        contents.append(
+                            ContentResponse(
                                 id=uuid.uuid4(),
-                                content=part.text,
-                                role=role,  # type: ignore[arg-type]
+                                type='message',
+                                data={'text': part.text},
+                                role=role,
+                                metadata={'session_id': session_id},
                             )
                         )
 
-    logger.debug(f'Retrieved session {session_id} with {len(messages)} messages')
+    logger.debug(f'Retrieved session {session_id} with {len(contents)} contents')
 
     return SessionDetailResponse(
         session_id=session.id,
         user_id=session.user_id,
         app_name=session.app_name,
         state=session.state,
-        messages=messages,
+        contents=contents,
         last_update_time=session.last_update_time,
     )

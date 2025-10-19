@@ -39,6 +39,7 @@ class Content(BaseModel):
         description='Content type that determines how to render this content.'
     )
     data: dict[str, Any] = Field(description="Flexible data payload. Structure depends on 'type'.")
+    role: str | None = Field(default=None, description="Role from ADK (e.g., 'user', 'model')")
     metadata: dict[str, Any] | None = Field(
         default=None, description='Additional metadata (session_id, timestamps, etc.)'
     )
