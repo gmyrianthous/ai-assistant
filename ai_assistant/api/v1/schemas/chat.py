@@ -4,47 +4,48 @@ from uuid import UUID
 
 from pydantic import BaseModel
 from pydantic import Field
-from pydantic import field_validator
 
-from ai_assistant.domain import Message as DomainMessage
+from ai_assistant.domain import Content as DomainContent
 
 
 class ChatRequest(BaseModel):
-    message: str = Field(..., description="The user's message")
-    session_id: UUID = Field(..., description='Session ID for continuing a conversation')
-    user_id: UUID = Field(..., description='User ID for tracking conversations across sessions')
+    message: str
+    session_id: UUID
+    user_id: UUID
 
 
-class MessageSchema(BaseModel):
+class ContentResponse(BaseModel):
+    """
+    Content response schema.
+
+    This is the unified response for both streaming and non-streaming endpoints.
+    The 'type' field determines how clients should interpret the 'data' payload.
+
+    Examples:
+        ContentResponse(type='message', data={'text': 'Hello world'})
+        ContentResponse(type='loader', data={'message': 'Processing...', 'show_spinner': True})
+        ContentResponse(type='metadata', data={}, metadata={'session_id': '...'})
+    """
+
     id: UUID
-    content: str
-    role: Literal['user', 'assistant']
-    metadata: dict[str, Any] | None = None
-
-    @field_validator('role', mode='before')
-    @classmethod
-    def normalize_role(cls, v: str) -> str:
-        """Normalize role values from ADK to API schema."""
-        role_mapping = {
-            'model': 'assistant',
-            'system': 'assistant',
-        }
-        return role_mapping.get(v, v)
+    type: Literal['message', 'loader', 'metadata']
+    data: dict[str, Any] = Field(description="Content data payload - structure depends on 'type'")
+    metadata: dict[str, Any] | None = Field(default=None, description='Additional metadata')
 
     @classmethod
-    def from_domain_model(cls, domain_message: DomainMessage) -> 'MessageSchema':
+    def from_domain_model(cls, content: DomainContent) -> 'ContentResponse':
         """
-        Create MessageSchema from domain Message model.
+        Create ContentResponse from domain Content model.
 
         Args:
-            domain_message: Domain Message instance
+            content: Domain Content instance
 
         Returns:
-            MessageSchema instance
+            ContentResponse instance
         """
         return cls(
-            id=domain_message.id,
-            content=domain_message.content,
-            role=domain_message.role,
-            metadata=domain_message.metadata,
+            id=content.id,
+            type=content.type,
+            data=content.data,
+            metadata=content.metadata,
         )

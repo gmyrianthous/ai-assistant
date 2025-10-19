@@ -3,8 +3,8 @@ from uuid import uuid4
 
 from ai_assistant.api.v1.routes.chatbot import chat
 from ai_assistant.api.v1.schemas.chat import ChatRequest
-from ai_assistant.api.v1.schemas.chat import MessageSchema
-from ai_assistant.domain import Message
+from ai_assistant.api.v1.schemas.chat import ContentResponse
+from ai_assistant.domain import Content
 from ai_assistant.services.ai.service import AIService
 
 
@@ -21,22 +21,22 @@ class TestChatEndpoint:
             user_id=user_id,
         )
 
-        domain_message = Message(
+        domain_content = Content(
             id=uuid4(),
-            content='Hello, human!',
-            role='assistant',
-            metadata={'session_id': session_id},
+            type='message',
+            data={'text': 'Hello, human!'},
+            metadata={'session_id': str(session_id)},
         )
-        ai_service.run = AsyncMock(return_value=domain_message)
+        ai_service.run = AsyncMock(return_value=domain_content)
 
         # act
         result = await chat(request, ai_service)
 
         # assert
-        assert isinstance(result, MessageSchema)
-        assert result.content == 'Hello, human!'
-        assert result.role == 'assistant'
-        assert result.metadata == {'session_id': session_id}
+        assert isinstance(result, ContentResponse)
+        assert result.type == 'message'
+        assert result.data == {'text': 'Hello, human!'}
+        assert result.metadata == {'session_id': str(session_id)}
 
         ai_service.run.assert_called_once_with(
             session_id=session_id,
@@ -56,13 +56,13 @@ class TestChatEndpoint:
             user_id=user_id,
         )
 
-        domain_message = Message(
+        domain_content = Content(
             id=uuid4(),
-            content='Response with metadata',
-            role='assistant',
+            type='message',
+            data={'text': 'Response with metadata'},
             metadata={'provider': 'adk', 'confidence': 0.95},
         )
-        ai_service.run = AsyncMock(return_value=domain_message)
+        ai_service.run = AsyncMock(return_value=domain_content)
 
         # act
         result = await chat(request, ai_service)
@@ -70,57 +70,57 @@ class TestChatEndpoint:
         # assert
         assert result.metadata == {'provider': 'adk', 'confidence': 0.95}
 
-    async def test_message_schema_from_domain_model_conversion(self) -> None:
+    async def test_content_response_from_domain_model_conversion(self) -> None:
         # arrange
         ai_service = AsyncMock(spec=AIService)
         session_id = uuid4()
         user_id = uuid4()
-        message_id = uuid4()
+        content_id = uuid4()
         request = ChatRequest(
             session_id=session_id,
             message='Test conversion',
             user_id=user_id,
         )
 
-        domain_message = Message(
-            id=message_id,
-            content='Test message',
-            role='assistant',
+        domain_content = Content(
+            id=content_id,
+            type='message',
+            data={'text': 'Test message'},
             metadata={'test': 'value', 'number': 42},
         )
-        ai_service.run = AsyncMock(return_value=domain_message)
+        ai_service.run = AsyncMock(return_value=domain_content)
 
         # act
         result = await chat(request, ai_service)
 
         # assert
-        assert result.id == message_id
-        assert result.content == 'Test message'
-        assert result.role == 'assistant'
+        assert result.id == content_id
+        assert result.type == 'message'
+        assert result.data == {'text': 'Test message'}
         assert result.metadata == {'test': 'value', 'number': 42}
 
-    async def test_chat_preserves_message_ids(self) -> None:
+    async def test_chat_preserves_content_ids(self) -> None:
         # arrange
         ai_service = AsyncMock(spec=AIService)
         session_id = uuid4()
         user_id = uuid4()
-        assistant_msg_id = uuid4()
+        content_id = uuid4()
         request = ChatRequest(
             session_id=session_id,
             message='Test ID preservation',
             user_id=user_id,
         )
 
-        domain_message = Message(
-            id=assistant_msg_id,
-            content='Response',
-            role='assistant',
+        domain_content = Content(
+            id=content_id,
+            type='message',
+            data={'text': 'Response'},
             metadata=None,
         )
-        ai_service.run = AsyncMock(return_value=domain_message)
+        ai_service.run = AsyncMock(return_value=domain_content)
 
         # act
         result = await chat(request, ai_service)
 
         # assert
-        assert result.id == assistant_msg_id
+        assert result.id == content_id

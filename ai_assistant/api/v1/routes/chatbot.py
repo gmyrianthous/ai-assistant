@@ -9,7 +9,7 @@ from fastapi.responses import StreamingResponse
 
 from ai_assistant.api.dependencies import get_ai_service
 from ai_assistant.api.v1.schemas.chat import ChatRequest
-from ai_assistant.api.v1.schemas.chat import MessageSchema
+from ai_assistant.api.v1.schemas.chat import ContentResponse
 from ai_assistant.services.ai.service import AIService
 
 logger = logging.getLogger(__name__)
@@ -24,26 +24,26 @@ router = APIRouter()
 async def chat(
     request: ChatRequest,
     ai_service: Annotated[AIService, Depends(get_ai_service)],
-) -> MessageSchema:
+) -> ContentResponse:
     """
-    Process an input chat request via AI service and return the response back to the client.
+    Process a chat request and return complete response.
 
     Args:
-        request (ChatRequest): The chat request containing the session ID and message.
-        ai_service (AIService): The AI service to use to generate the response.
+        request: The chat request containing the session ID and message
+        ai_service: The AI service to use to generate the response
 
     Returns:
-        MessageSchema: The assistant's message response.
+        ContentResponse: Response as Content(type='message', data={'text': '...'})
     """
     logger.info(f'New chat request received for session {request.session_id}')
 
-    domain_message = await ai_service.run(
+    domain_content = await ai_service.run(
         session_id=request.session_id,
         user_message=request.message,
         user_id=request.user_id,
     )
 
-    return MessageSchema.from_domain_model(domain_message)
+    return ContentResponse.from_domain_model(domain_content)
 
 
 @router.post(
@@ -60,9 +60,11 @@ async def chat_stream(
 
     The response is streamed as SSE events in the format:
     ```
-    data: {"content": "chunk", "done": false}
+    data: {"id": "...", "type": "message", "data": {"text": "chunk"}, ...}
 
-    data: {"content": "", "done": true, "metadata": {"session_id": "..."}}
+    data: {"id": "...", "type": "loader", "data": {"message": "...", "show_spinner": true}, ...}
+
+    data: {"id": "...", "type": "metadata", "data": {}, "metadata": {"session_id": "..."}}
     ```
 
     Args:
@@ -70,27 +72,23 @@ async def chat_stream(
         ai_service: The AI service to use to generate the response
 
     Returns:
-        StreamingResponse: SSE stream of response chunks
+        StreamingResponse: SSE stream of Content objects
     """
     logger.info(f'New chat stream request for session {request.session_id}')
 
     async def event_generator():
-        """Generate Server-Sent Events from domain StreamChunks."""
+        """Generate Server-Sent Events from domain Content objects."""
         try:
-            async for chunk in ai_service.run_stream(
+            async for content in ai_service.run_stream(
                 session_id=request.session_id,
                 user_message=request.message,
                 user_id=request.user_id,
             ):
-                event_data = MessageSchema(
-                    id=chunk.id,
-                    role=chunk.role,
-                    content=chunk.content,
-                    metadata=chunk.metadata,
-                )
+                # Convert to response schema
+                content_response = ContentResponse.from_domain_model(content)
 
                 # Format as SSE: "data: {json}\n\n"
-                yield f'data: {event_data.model_dump_json()}\n\n'
+                yield f'data: {content_response.model_dump_json()}\n\n'
 
             logger.info(f'Stream completed for session {request.session_id}')
 
@@ -100,7 +98,7 @@ async def chat_stream(
             # Send error event
             error_event = {
                 'error': str(e),
-                'session_id': request.session_id,
+                'session_id': str(request.session_id),
             }
 
             yield f'data: {json.dumps(error_event)}\n\n'

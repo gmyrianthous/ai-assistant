@@ -1,3 +1,4 @@
+import json
 import uuid
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -12,7 +13,7 @@ client = TestClient(app)
 
 
 class TestChatPost:
-    @patch('ai_assistant.services.ai.service.Runner')
+    @patch('ai_assistant.services.ai.runner.Runner')
     def test_chat_success(self, mock_runner_class: MagicMock) -> None:
         # arrange
         mock_event = MagicMock()
@@ -47,10 +48,10 @@ class TestChatPost:
         assert result.status_code == expected_status
         response_data = result.json()
         assert 'id' in response_data
-        assert 'content' in response_data
-        assert 'role' in response_data
-        assert response_data['role'] == 'assistant'
-        assert response_data['content'] == 'The weather in London is sunny with 20°C.'
+        assert 'type' in response_data
+        assert 'data' in response_data
+        assert response_data['type'] == 'message'
+        assert response_data['data']['text'] == 'The weather in London is sunny with 20°C.'
 
     def test_chat_missing_message(self) -> None:
         # arrange
@@ -102,23 +103,25 @@ class TestChatPost:
 
 
 class TestChatStreamPost:
-    @patch('ai_assistant.services.ai.service.Runner')
+    @patch('ai_assistant.services.ai.runner.Runner')
     def test_chat_stream_success(self, mock_runner_class: MagicMock) -> None:
         # arrange
-        mock_events = [
-            MagicMock(
-                is_final_response=lambda: False,
-                content=Content(role='model', parts=[Part(text='The ')]),
-            ),
-            MagicMock(
-                is_final_response=lambda: False,
-                content=Content(role='model', parts=[Part(text='weather ')]),
-            ),
-            MagicMock(
-                is_final_response=lambda: True,
-                content=Content(role='model', parts=[Part(text='is sunny.')]),
-            ),
-        ]
+        mock_event1 = MagicMock()
+        mock_event1.is_final_response.return_value = False
+        mock_event1.author = 'weather_assistant'
+        mock_event1.content = Content(role='model', parts=[Part(text='The ')])
+
+        mock_event2 = MagicMock()
+        mock_event2.is_final_response.return_value = False
+        mock_event2.author = 'weather_assistant'
+        mock_event2.content = Content(role='model', parts=[Part(text='weather ')])
+
+        mock_event3 = MagicMock()
+        mock_event3.is_final_response.return_value = True
+        mock_event3.author = 'weather_assistant'
+        mock_event3.content = Content(role='model', parts=[Part(text='is sunny.')])
+
+        mock_events = [mock_event1, mock_event2, mock_event3]
 
         async def mock_run_async(*args, **kwargs):
             for event in mock_events:
@@ -127,6 +130,7 @@ class TestChatStreamPost:
         mock_runner_instance = MagicMock()
         mock_runner_instance.run_async = mock_run_async
         mock_runner_class.return_value = mock_runner_instance
+
         # arrange
         user_id = str(uuid.uuid4())
         session_response = client.post('/api/v1/chatbot/session', json={'user_id': user_id})
@@ -151,15 +155,14 @@ class TestChatStreamPost:
                 if line.startswith('data: '):
                     chunks.append(line)
 
-            # Verify we received chunks (3 content + 1 metadata chunk)
-            assert len(chunks) == 4
+            assert len(chunks) == 2
 
-            # Verify last chunk has metadata
-            import json
-
-            last_chunk_data = json.loads(chunks[-1].replace('data: ', ''))
-            assert 'metadata' in last_chunk_data
-            assert last_chunk_data['metadata']['session_id'] == session_id
+            for chunk in chunks:
+                chunk_data = json.loads(chunk.replace('data: ', ''))
+                assert chunk_data['type'] == 'message'
+                assert 'text' in chunk_data['data']
+                assert 'session_id' in chunk_data['metadata']
+                assert chunk_data['metadata']['session_id'] == session_id
 
     def test_chat_stream_missing_message(self) -> None:
         # arrange
