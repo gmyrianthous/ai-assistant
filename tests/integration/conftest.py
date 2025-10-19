@@ -5,7 +5,7 @@ from httpx import ASGITransport
 from httpx import AsyncClient
 
 from ai_assistant.api.main import app
-from tests.fixtures.database import *  # noqa
+from tests.fixtures import *  # noqa: F403
 
 
 @pytest.fixture(scope='function')
