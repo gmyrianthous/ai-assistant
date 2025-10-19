@@ -1,4 +1,8 @@
+import asyncio
+import logging
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 async def get_weather(location: str) -> dict[str, Any]:
@@ -11,6 +15,11 @@ async def get_weather(location: str) -> dict[str, Any]:
     Returns:
         dict[str, Any]: Weather information
     """
+    # Artificial delay to simulate API call
+    logger.info(f'Fetching weather for {location}...')
+    await asyncio.sleep(2)  # 2 second delay
+    logger.info(f'Weather data retrieved for {location}')
+
     # TODO: Implement actual weather API (e.g., OpenWeatherMap, WeatherAPI)
     return {
         'location': location,
