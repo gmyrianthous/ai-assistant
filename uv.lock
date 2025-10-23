@@ -1067,7 +1067,7 @@ wheels = [
 
 [[package]]
 name = "langfuse"
-version = "3.8.0"
+version = "3.8.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "backoff" },
@@ -1081,9 +1081,9 @@ dependencies = [
     { name = "requests" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/44/4c/3b35002cfd055f16fec759fe063a1692fde297f6dccdab33bc32647a8734/langfuse-3.8.0.tar.gz", hash = "sha256:f10ecd76a02d89368b41568e386f2bde8744729209a1ca0838b1209703eb7455", size = 191282, upload-time = "2025-10-20T13:45:00.561Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ca/0b/81f9c6a982f79c112b7f10bfd6f3a4871e6fa3e4fe8d078b6112abfd3c08/langfuse-3.8.1.tar.gz", hash = "sha256:2464ae3f8386d80e1252a0e7406e3be4121e792a74f1b1c21d9950f658e5168d", size = 197401, upload-time = "2025-10-22T13:35:52.572Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/da/d9/43a9b3d64cf65f62ccd21046991c72ce4e5b2d851b66a00ce7faca38ffdd/langfuse-3.8.0-py3-none-any.whl", hash = "sha256:9b7e786e7ae8ad895af479b8ad5d094e600f2c7ec1b3dc8bbcd225b1bc7e320a", size = 351985, upload-time = "2025-10-20T13:44:58.473Z" },
+    { url = "https://files.pythonhosted.org/packages/b2/f9/538af0fc4219eb2484ba319483bce3383146f7a0923d5f39e464ad9a504b/langfuse-3.8.1-py3-none-any.whl", hash = "sha256:5b94b66ec0b0de388a8ea1f078b32c1666b5825b36eab863a21fdee78c53b3bb", size = 364580, upload-time = "2025-10-22T13:35:50.597Z" },
 ]
 
 [[package]]
