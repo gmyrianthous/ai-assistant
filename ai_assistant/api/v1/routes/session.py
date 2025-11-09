@@ -126,6 +126,7 @@ async def get_session(
     contents = []
     for event in session.events:
         if hasattr(event, 'content') and event.content:
+            # Extract role from ADK event content (e.g., 'user', 'model')
             role = getattr(event.content, 'role', None)
 
             if hasattr(event.content, 'parts') and event.content.parts:
