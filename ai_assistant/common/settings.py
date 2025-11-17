@@ -29,6 +29,7 @@ class AppSettings(BaseSettings):
     LANGFUSE_SECRET_KEY: SecretStr = SecretStr('langfuse_secret_key')
     LANGFUSE_PUBLIC_KEY: SecretStr = SecretStr('langfuse_public_key')
     LANGFUSE_DEBUG: bool = False
+    LANGFUSE_TRACING_ENVIRONMENT: str = 'default'
 
     @property
     def DATABASE_URL(self) -> PostgresDsn:  # noqa: N802
