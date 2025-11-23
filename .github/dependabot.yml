@@ -16,6 +16,7 @@ updates:
       time: "09:00"
     insecure-external-code-execution: allow
     open-pull-requests-limit: 5 
+    versioning-strategy: increase
 
   - package-ecosystem: "github-actions"
     directory: "/"
