@@ -19,7 +19,7 @@ dependencies = [
     "asyncpg>=0.30.0",
     "python-json-logger>=4.1.0",
     "google-adk>=1.15.1",
-    "openinference-instrumentation-google-adk>=0.1.0",
+    "openinference-instrumentation-google-adk>=0.1.15",
 ]
 
 [dependency-groups]
