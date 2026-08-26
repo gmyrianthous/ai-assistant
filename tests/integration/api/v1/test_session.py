@@ -1,6 +1,10 @@
 import uuid
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
+from google.genai.types import Content
+from google.genai.types import Part
 
 from ai_assistant.api.main import app
 
@@ -49,8 +53,20 @@ class TestSessionPost:
 
 
 class TestSessionGet:
-    def test_get_session_success(self) -> None:
+    @patch('ai_assistant.services.ai.runner.Runner')
+    def test_get_session_success(self, mock_runner_class: MagicMock) -> None:
         # arrange
+        mock_event = MagicMock()
+        mock_event.is_final_response.return_value = True
+        mock_event.content = Content(role='model', parts=[Part(text='Hi there!')])
+
+        async def mock_run_async(*args, **kwargs):
+            yield mock_event
+
+        mock_runner_instance = MagicMock()
+        mock_runner_instance.run_async = mock_run_async
+        mock_runner_class.return_value = mock_runner_instance
+
         user_id = str(uuid.uuid4())
         session_response = client.post('/api/v1/chatbot/session', json={'user_id': user_id})
         session_id = session_response.json()['session_id']
