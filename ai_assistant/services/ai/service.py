@@ -3,6 +3,7 @@ import uuid
 from collections.abc import AsyncGenerator
 
 from langfuse import observe
+from langfuse import propagate_attributes
 
 from ai_assistant.common.clients.langfuse import get_langfuse_client
 from ai_assistant.domain import Content
@@ -40,19 +41,15 @@ class AIService:
             Content: Response as Content(type='message', ...)
         """
         logger.debug(f'Processing message for session {session_id}, user {user_id}')
-        response_text = await self.agent_runner.run(
-            session_id=session_id,
-            user_message=user_message,
-            user_id=user_id,
-        )
+        with propagate_attributes(user_id=str(user_id), session_id=str(session_id)):
+            response_text = await self.agent_runner.run(
+                session_id=session_id,
+                user_message=user_message,
+                user_id=user_id,
+            )
 
         langfuse = get_langfuse_client()
-        langfuse.update_current_trace(
-            user_id=str(user_id),
-            session_id=str(session_id),
-            input=user_message,
-            output=response_text,
-        )
+        langfuse.update_current_span(input=user_message, output=response_text)
 
         return Content(
             id=uuid.uuid4(),
@@ -82,21 +79,17 @@ class AIService:
         logger.debug(f'Processing streaming message for session {session_id}, user {user_id}')
 
         full_output = ''
-        async for content in self.agent_runner.run_stream(
-            session_id=session_id,
-            user_message=user_message,
-            user_id=user_id,
-        ):
-            if content.type == 'message' and 'text' in content.data:
-                full_output += content.data['text']
-            yield content
+        with propagate_attributes(user_id=str(user_id), session_id=str(session_id)):
+            async for content in self.agent_runner.run_stream(
+                session_id=session_id,
+                user_message=user_message,
+                user_id=user_id,
+            ):
+                if content.type == 'message' and 'text' in content.data:
+                    full_output += content.data['text']
+                yield content
 
         langfuse = get_langfuse_client()
-        langfuse.update_current_trace(
-            user_id=str(user_id),
-            session_id=str(session_id),
-            input=user_message,
-            output=full_output,
-        )
+        langfuse.update_current_span(input=user_message, output=full_output)
 
         logger.debug(f'Stream completed for session {session_id}')

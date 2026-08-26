@@ -12,7 +12,7 @@ Usage:
 
 import logging
 
-from langfuse.api.resources.commons.errors import NotFoundError
+from langfuse.api import NotFoundError
 
 from ai_assistant.common.clients.langfuse import get_langfuse_client
 from ai_assistant.common.settings import settings

@@ -115,10 +115,12 @@ class TestRun:
         )
 
     @pytest.mark.asyncio
+    @patch('ai_assistant.services.ai.service.propagate_attributes')
     @patch('ai_assistant.services.ai.service.get_langfuse_client')
     async def test_updates_langfuse_trace(
         self,
         mock_langfuse_client: MagicMock,
+        mock_propagate_attributes: MagicMock,
         ai_service: AIService,
         agent_runner: MagicMock,
     ) -> None:
@@ -137,9 +139,11 @@ class TestRun:
         )
 
         # assert
-        mock_langfuse_client.return_value.update_current_trace.assert_called_once_with(
+        mock_propagate_attributes.assert_called_once_with(
             user_id=str(user_id),
             session_id=str(session_id),
+        )
+        mock_langfuse_client.return_value.update_current_span.assert_called_once_with(
             input=user_message,
             output='Agent response',
         )
@@ -255,10 +259,12 @@ class TestRunStream:
         )
 
     @pytest.mark.asyncio
+    @patch('ai_assistant.services.ai.service.propagate_attributes')
     @patch('ai_assistant.services.ai.service.get_langfuse_client')
     async def test_updates_langfuse_trace_for_streaming(
         self,
         mock_langfuse_client: MagicMock,
+        mock_propagate_attributes: MagicMock,
         ai_service: AIService,
         agent_runner: MagicMock,
     ) -> None:
@@ -285,9 +291,11 @@ class TestRunStream:
             pass
 
         # assert
-        mock_langfuse_client.return_value.update_current_trace.assert_called_once_with(
+        mock_propagate_attributes.assert_called_once_with(
             user_id=str(user_id),
             session_id=str(session_id),
+        )
+        mock_langfuse_client.return_value.update_current_span.assert_called_once_with(
             input=user_message,
             output='Response',
         )
