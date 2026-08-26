@@ -169,6 +169,28 @@ $ make up
 $ make migration-run
 ```
 
+#### Running Langfuse locally
+The docker compose file includes a self-hosted [Langfuse](https://langfuse.com) stack
+(web + worker + ClickHouse + Redis + MinIO + a dedicated Postgres) for local development.
+
+```bash
+# Spin up Langfuse (and its dependencies)
+$ docker compose up -d langfuse-web langfuse-worker
+
+# Seed the prompts the app fetches at startup (orchestrator + agents)
+$ make langfuse-seed
+```
+
+On first boot, an organisation, project, user and API keys are provisioned automatically
+(headless init), matching the defaults in `.env.example`:
+
+- UI: http://localhost:3001 (login: `dev@example.com` / `langfuse-local`)
+- API keys: `pk-lf-local` / `sk-lf-local`
+
+> The `api` service reaches Langfuse at `http://langfuse-web:3000` inside the compose
+> network; processes running on the host (e.g. `adk web`, the seed script) use
+> `http://localhost:3001` from `.env`.
+
 ## 📊 Evaluations
 
 
