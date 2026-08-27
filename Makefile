@@ -1,4 +1,4 @@
-.PHONY: adk-web down fmt fmt-check image langfuse-seed lint logs logs-api logs-db migration-create migration-run setup test test-integration test-unit up ci-lint ci-fmt-check ci-unit ci-integration
+.PHONY: adk-web down fmt fmt-check growthbook-seed image langfuse-seed lint logs logs-api logs-db migration-create migration-run setup test test-integration test-unit up ci-lint ci-fmt-check ci-unit ci-integration
 
 adk-web:
 	PYTHONPATH=. uv run adk web ai_assistant/services/ai/adk/agents/
@@ -19,6 +19,10 @@ fmt-check:
 # Build the docker image
 image:
 	GCP_TOKEN=$(shell gcloud auth print-access-token) docker build -t ai-assistant --secret id=GCP_TOKEN .
+
+# Bootstrap the local GrowthBook instance (account, SDK key, prompt experiment)
+growthbook-seed:
+	PYTHONPATH=. uv run python scripts/seed_growthbook.py
 
 # Seed the local Langfuse instance with the prompts the app needs at startup
 langfuse-seed:

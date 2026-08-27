@@ -204,16 +204,20 @@ instance for feature flags and A/B experiments (e.g. testing prompt variations):
 
 ```bash
 $ docker compose up -d growthbook
+
+# Bootstrap everything headlessly (no UI signup needed)
+$ make growthbook-seed
 ```
 
-1. Open http://localhost:3002 and create the admin account (first signup wins).
-2. Create an SDK connection (Python) and copy its client key into `.env` as
-   `GROWTHBOOK_CLIENT_KEY`. Flags are disabled (defaults apply) while the key is empty.
-3. Create a string feature named `orchestrator-prompt-label`. Its value is the
-   **Langfuse prompt label** served to each user — add an experiment rule splitting
-   traffic between labels (e.g. `dev` vs `dev-b`, after creating a `dev-b`-labelled
-   version of the `orchestrator` prompt in Langfuse) to A/B test prompt variants.
+The seed script provisions the whole setup idempotently:
+- the admin account (`dev@example.com` / `growthbook-local`, UI at http://localhost:3002)
+- a Python SDK connection, with the client key written into `.env`
+- the `orchestrator-prompt-label` string feature with a **50/50 experiment** between
+  the default prompt label (= `ENVIRONMENT`) and a `-b` variant label
+- the variant `orchestrator` prompt in Langfuse (label `<ENVIRONMENT>-b`)
 
+The feature's value is the **Langfuse prompt label** served to each user, so the
+experiment A/B tests orchestrator prompt variants with consistent per-user bucketing.
 Flags fail open: if GrowthBook is unreachable or a label doesn't exist in Langfuse,
 the default prompt (label = `ENVIRONMENT`) is served.
 
