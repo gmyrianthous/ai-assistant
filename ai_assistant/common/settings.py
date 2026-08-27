@@ -25,6 +25,9 @@ class AppSettings(BaseSettings):
     DATABASE_PASSWORD: SecretStr = SecretStr('postgres')
     DATABASE_PORT: int = 5432
 
+    GROWTHBOOK_API_HOST: str = 'http://localhost:3101'
+    GROWTHBOOK_CLIENT_KEY: SecretStr = SecretStr('')
+
     LANGFUSE_HOST: str = 'https://cloud.langfuse.com'
     LANGFUSE_SECRET_KEY: SecretStr = SecretStr('langfuse_secret_key')
     LANGFUSE_PUBLIC_KEY: SecretStr = SecretStr('langfuse_public_key')

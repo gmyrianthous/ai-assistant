@@ -198,6 +198,25 @@ On first boot, an organisation, project, user and API keys are provisioned autom
 > network; processes running on the host (e.g. `adk web`, the seed script) use
 > `http://localhost:3001` from `.env`.
 
+#### Feature flags & experimentation (GrowthBook)
+The docker compose file also includes a self-hosted [GrowthBook](https://www.growthbook.io)
+instance for feature flags and A/B experiments (e.g. testing prompt variations):
+
+```bash
+$ docker compose up -d growthbook
+```
+
+1. Open http://localhost:3002 and create the admin account (first signup wins).
+2. Create an SDK connection (Python) and copy its client key into `.env` as
+   `GROWTHBOOK_CLIENT_KEY`. Flags are disabled (defaults apply) while the key is empty.
+3. Create a string feature named `orchestrator-prompt-label`. Its value is the
+   **Langfuse prompt label** served to each user — add an experiment rule splitting
+   traffic between labels (e.g. `dev` vs `dev-b`, after creating a `dev-b`-labelled
+   version of the `orchestrator` prompt in Langfuse) to A/B test prompt variants.
+
+Flags fail open: if GrowthBook is unreachable or a label doesn't exist in Langfuse,
+the default prompt (label = `ENVIRONMENT`) is served.
+
 ## 📊 Evaluations
 
 
