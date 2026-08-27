@@ -7,10 +7,10 @@ from fastapi import Depends
 from fastapi import status
 
 from ai_assistant.api.dependencies import get_session_service
-from ai_assistant.api.v1.schemas.chat import ContentResponse
 from ai_assistant.api.v1.schemas.session import SessionDetailResponse
 from ai_assistant.api.v1.schemas.session import SessionListItem
 from ai_assistant.api.v1.schemas.session import SessionListResponse
+from ai_assistant.api.v1.schemas.session import SessionMessage
 from ai_assistant.api.v1.schemas.session import SessionRequest
 from ai_assistant.api.v1.schemas.session import SessionResponse
 from ai_assistant.common.settings import settings
@@ -122,7 +122,7 @@ async def get_session(
     if not session:
         raise NotFoundException(f'Session {session_id} not found for user {user_id}')
 
-    # Convert events to ContentResponse objects
+    # Convert events to SessionMessage objects
     contents = []
     for event in session.events:
         if hasattr(event, 'content') and event.content:
@@ -132,15 +132,7 @@ async def get_session(
             if hasattr(event.content, 'parts') and event.content.parts:
                 for part in event.content.parts:
                     if hasattr(part, 'text') and part.text:
-                        contents.append(
-                            ContentResponse(
-                                id=uuid.uuid4(),
-                                type='message',
-                                data={'text': part.text},
-                                role=role,
-                                metadata={'session_id': session_id},
-                            )
-                        )
+                        contents.append(SessionMessage(text=part.text, role=role))
 
     logger.debug(f'Retrieved session {session_id} with {len(contents)} contents')
 

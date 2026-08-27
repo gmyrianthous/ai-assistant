@@ -1,12 +1,11 @@
 import uuid
-from unittest.mock import MagicMock
-from unittest.mock import patch
 
 from fastapi.testclient import TestClient
-from google.genai.types import Content
-from google.genai.types import Part
+from google.adk.sessions import InMemorySessionService
 
 from ai_assistant.api.main import app
+from ai_assistant.common.settings import settings
+from tests.factories import ADKEventFactory
 
 client = TestClient(app)
 
@@ -53,30 +52,22 @@ class TestSessionPost:
 
 
 class TestSessionGet:
-    @patch('ai_assistant.services.ai.runner.Runner')
-    def test_get_session_success(self, mock_runner_class: MagicMock) -> None:
+    async def test_get_session_success(self, session_service: InMemorySessionService) -> None:
         # arrange
-        mock_event = MagicMock()
-        mock_event.is_final_response.return_value = True
-        mock_event.content = Content(role='model', parts=[Part(text='Hi there!')])
-
-        async def mock_run_async(*args, **kwargs):
-            yield mock_event
-
-        mock_runner_instance = MagicMock()
-        mock_runner_instance.run_async = mock_run_async
-        mock_runner_class.return_value = mock_runner_instance
-
         user_id = str(uuid.uuid4())
         session_response = client.post('/api/v1/chatbot/session', json={'user_id': user_id})
         session_id = session_response.json()['session_id']
 
-        chat_payload = {
-            'message': 'Hello',
-            'session_id': session_id,
-            'user_id': user_id,
-        }
-        client.post('/api/v1/chatbot/chat', json=chat_payload)
+        # Seed the conversation with an agent message
+        session = await session_service.get_session(
+            app_name=settings.APP_NAME,
+            user_id=user_id,
+            session_id=session_id,
+        )
+        assert session is not None
+        await session_service.append_event(
+            session, ADKEventFactory.final_response('Hi there!', author='orchestrator')
+        )
 
         # act
         result = client.get(
@@ -89,8 +80,7 @@ class TestSessionGet:
         response_data = result.json()
         assert response_data['session_id'] == session_id
         assert response_data['user_id'] == user_id
-        assert 'contents' in response_data
-        assert isinstance(response_data['contents'], list)
+        assert response_data['contents'] == [{'text': 'Hi there!', 'role': 'model'}]
         assert 'last_update_time' in response_data
 
     def test_get_session_not_found(self) -> None:

@@ -1,17 +1,11 @@
 """FastAPI dependency injection configuration."""
 
 import logging
-from typing import Annotated
-
-from fastapi import Depends
 
 from ai_assistant.services.ai.adk.session_factory import ADKSessionService
 from ai_assistant.services.ai.adk.session_factory import (
     get_session_service as _get_session_service,
 )
-from ai_assistant.services.ai.processors import AgentProcessorRegistry
-from ai_assistant.services.ai.runner import AgentRunner
-from ai_assistant.services.ai.service import AIService
 
 logger = logging.getLogger(__name__)
 
@@ -24,23 +18,3 @@ def get_session_service() -> ADKSessionService:
         ADKSessionService: The singleton session service instance.
     """
     return _get_session_service()
-
-
-def get_ai_service(
-    session_service: Annotated[ADKSessionService, Depends(get_session_service)],
-) -> AIService:
-    """
-    FastAPI dependency to get an AI service.
-
-    Args:
-        session_service: The injected ADK session service.
-
-    Returns:
-        AIService: The configured AI service instance with agent runner and processors.
-    """
-    logger.debug('Creating AI service with agent runner and processors')
-
-    registry = AgentProcessorRegistry()
-    agent_runner = AgentRunner(session_service=session_service, processor_registry=registry)
-
-    return AIService(session_service=session_service, agent_runner=agent_runner)

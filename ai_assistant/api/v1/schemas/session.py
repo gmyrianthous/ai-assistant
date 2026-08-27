@@ -3,8 +3,6 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from ai_assistant.api.v1.schemas.chat import ContentResponse
-
 
 class SessionRequest(BaseModel):
     user_id: uuid.UUID
@@ -15,12 +13,17 @@ class SessionResponse(BaseModel):
     intro_message: str
 
 
+class SessionMessage(BaseModel):
+    text: str
+    role: str | None = None
+
+
 class SessionDetailResponse(BaseModel):
     session_id: str
     user_id: str
     app_name: str
     state: dict[str, Any]
-    contents: list[ContentResponse]
+    contents: list[SessionMessage]
     last_update_time: float
 
 

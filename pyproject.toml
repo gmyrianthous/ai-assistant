@@ -20,6 +20,7 @@ dependencies = [
     "python-json-logger>=4.1.0",
     "google-adk>=2.7.1,<3",
     "openinference-instrumentation-google-adk>=0.1.15",
+    "ag-ui-adk>=0.7.0",
 ]
 
 [dependency-groups]
@@ -72,5 +73,7 @@ plugins = ["sqlalchemy.ext.mypy.plugin"]
 module = [
   "testcontainers.*",
   "pythonjsonlogger.*",
+  "ag_ui_adk",
+  "ag_ui_adk.*",
 ]
 ignore_missing_imports = true

@@ -14,8 +14,15 @@ batteries included:
 
 ### ⚙️ API
 The backend implementation exposes endpoints that facilitate:
-- Session Management 
-- Interactions between the chatbot and the end user 
+- Session Management (REST, under `/api/v1/chatbot`)
+- Chat via the [AG-UI protocol](https://docs.ag-ui.com) (`POST /api/v1/agui`)
+
+Chat interactions are served over AG-UI, the open agent↔user interaction protocol:
+the endpoint accepts a `RunAgentInput` payload and streams standard AG-UI events
+(`RUN_STARTED`, `TEXT_MESSAGE_*`, `TOOL_CALL_*`, `RUN_FINISHED`, ...) as Server-Sent
+Events. Any AG-UI-compatible client (e.g. [CopilotKit](https://www.copilotkit.ai))
+can consume it out of the box; the AG-UI `threadId` maps directly to the ADK session
+id, so conversations are also visible through the session endpoints.
 
 > The swagger documentation for the available endpoints can be accessed on 
 > https://localhost:8080/docs
