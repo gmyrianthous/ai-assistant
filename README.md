@@ -110,6 +110,37 @@ The workflow includes four parallel jobs:
 
 ## 🚀 Getting Started
 
+### Local environment at a glance
+
+Spin up everything (all docker services + Langfuse prompt seeding + GrowthBook
+bootstrap) with a single command:
+
+```bash
+$ make local
+```
+
+> Requires an authenticated `gcloud` session (the api image build pulls from a
+> private registry) and a `.env` file (`cp .env.example .env`). To run only the
+> supporting services without the api container:
+> `docker compose up -d --wait db langfuse-web langfuse-worker growthbook`
+
+Once up, these are all the local services, links and credentials:
+
+| Service | URL | Credentials |
+| --- | --- | --- |
+| API (FastAPI) | http://localhost:8080 (Swagger: [/docs](http://localhost:8080/docs)) | — |
+| AG-UI chat endpoint | `POST` http://localhost:8080/api/v1/agui | — |
+| ADK web UI (`make adk-web`) | http://localhost:8000 | — |
+| Langfuse (tracing & prompts) | http://localhost:3001 | `dev@example.com` / `langfuse-local` · API keys `pk-lf-local` / `sk-lf-local` |
+| GrowthBook (flags & experiments) | http://localhost:3002 (SDK API: http://localhost:3101) | `dev@example.com` / `growthbook-local` · SDK key written to `.env` by the seed |
+| Postgres (app database) | `localhost:5432` | `postgres` / `postgres` · db `ai_assistant` |
+| MinIO console (Langfuse storage) | http://localhost:9091 | `minio` / `miniosecret` |
+
+All credentials are throwaway values for local development only.
+
+> Port clashes: if another local project already binds a port (e.g. a different
+> Postgres on 5432), stop it first or adjust the port mapping in `docker-compose.yml`.
+
 ### Setting up the environment
 
 1. Clone the repository

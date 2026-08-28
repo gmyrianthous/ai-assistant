@@ -1,4 +1,4 @@
-.PHONY: adk-web down fmt fmt-check growthbook-seed image langfuse-seed lint logs logs-api logs-db migration-create migration-run setup test test-integration test-unit up ci-lint ci-fmt-check ci-unit ci-integration
+.PHONY: adk-web down fmt fmt-check growthbook-seed image langfuse-seed lint local logs logs-api logs-db migration-create migration-run setup test test-integration test-unit up ci-lint ci-fmt-check ci-unit ci-integration
 
 adk-web:
 	PYTHONPATH=. uv run adk web ai_assistant/services/ai/adk/agents/
@@ -73,9 +73,12 @@ test-integration:
 test-unit:
 	uv run pytest tests/unit -vv
 
-# Up the services
-up: 
-	GCP_TOKEN=$(shell gcloud auth print-access-token) docker compose up -d
+# Up the services (waits for healthchecks)
+up:
+	GCP_TOKEN=$(shell gcloud auth print-access-token) docker compose up -d --wait
+
+# One-shot local environment: spin up all services and seed Langfuse + GrowthBook
+local: up langfuse-seed growthbook-seed
 
 # CI Targets
 ci-lint: lint

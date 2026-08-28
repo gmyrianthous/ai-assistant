@@ -216,6 +216,18 @@ services:
       JWT_SECRET: local-dev-secret
     volumes:
       - growthbook_uploads:/usr/local/src/app/packages/back-end/uploads
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - >-
+          require('http').get('http://127.0.0.1:3100/healthcheck',
+          r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
 
   growthbook-mongo:
     image: mongo:7
