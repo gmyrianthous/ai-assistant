@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Assistant — local chat</title>
+  <style>
+    :root {
+      --bg: #10141a;
+      --panel: #1a2029;
+      --border: #2a3341;
+      --text: #e6ebf2;
+      --muted: #8b96a5;
+      --accent: #4f8cff;
+      --error: #e5615c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    header h1 { font-size: 15px; margin: 0; font-weight: 600; }
+    header small { color: var(--muted); font-size: 12px; }
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .msg {
+      max-width: 72%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 14px;
+    }
+    .user { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+    .assistant { align-self: flex-start; background: var(--panel); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+    .tool { align-self: flex-start; color: var(--muted); font-size: 12px; padding: 2px 6px; }
+    .error { align-self: flex-start; background: transparent; border: 1px solid var(--error); color: var(--error); }
+    form {
+      display: flex;
+      gap: 10px;
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+    }
+    input[type="text"]:focus { border-color: var(--accent); }
+    button {
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.5; cursor: default; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AI Assistant</h1>
+    <small>AG-UI protocol · <span id="thread"></span></small>
+  </header>
+  <div id="messages"></div>
+  <form id="form">
+    <input id="input" type="text" placeholder="Ask about the weather or a recipe..." autocomplete="off" autofocus />
+    <button id="send" type="submit">Send</button>
+  </form>
+
+  <script>
+    const ENDPOINT = '/api/v1/agui';
+    const threadId = sessionStorage.threadId ??= crypto.randomUUID();
+    const userId = localStorage.userId ??= crypto.randomUUID();
+    document.getElementById('thread').textContent = threadId.slice(0, 8);
+
+    const messagesEl = document.getElementById('messages');
+    const form = document.getElementById('form');
+    const input = document.getElementById('input');
+    const send = document.getElementById('send');
+    const history = [];
+
+    function addBubble(cls, text = '') {
+      const el = document.createElement('div');
+      el.className = `msg ${cls}`;
+      el.textContent = text;
+      messagesEl.appendChild(el);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      return el;
+    }
+
+    async function run(userText) {
+      history.push({ id: crypto.randomUUID(), role: 'user', content: userText });
+      addBubble('user', userText);
+      send.disabled = true;
+
+      const response = await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
+        body: JSON.stringify({
+          threadId,
+          runId: crypto.randomUUID(),
+          state: {},
+          messages: history,
+          tools: [],
+          context: [],
+          forwardedProps: { user_id: userId },
+        }),
+      });
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let bubble = null;
+      let assistantText = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const chunks = buffer.split('\n\n');
+        buffer = chunks.pop();
+        for (const chunk of chunks) {
+          const line = chunk.split('\n').find((l) => l.startsWith('data: '));
+          if (!line) continue;
+          const event = JSON.parse(line.slice(6));
+
+          switch (event.type) {
+            case 'TEXT_MESSAGE_START':
+              bubble = addBubble('assistant');
+              assistantText = '';
+              break;
+            case 'TEXT_MESSAGE_CONTENT':
+              if (!bubble) bubble = addBubble('assistant');
+              assistantText += event.delta;
+              bubble.textContent = assistantText;
+              messagesEl.scrollTop = messagesEl.scrollHeight;
+              break;
+            case 'TEXT_MESSAGE_END':
+              if (assistantText) {
+                history.push({ id: crypto.randomUUID(), role: 'assistant', content: assistantText });
+              }
+              bubble = null;
+              break;
+            case 'TOOL_CALL_START':
+              addBubble('tool', `⚙ calling ${event.toolCallName}...`);
+              break;
+            case 'RUN_ERROR':
+              addBubble('error', event.message);
+              break;
+          }
+        }
+      }
+      send.disabled = false;
+      input.focus();
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text || send.disabled) return;
+      input.value = '';
+      run(text).catch((err) => {
+        addBubble('error', String(err));
+        send.disabled = false;
+      });
+    });
+  </script>
+</body>
+</html>

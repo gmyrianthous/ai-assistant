@@ -10,6 +10,7 @@ from fastapi import status
 from fastapi.responses import JSONResponse
 from openinference.instrumentation.google_adk import GoogleADKInstrumentor
 
+from ai_assistant.api.routes.chat_ui import router as chat_ui_router
 from ai_assistant.api.routes.health import router as health_router
 from ai_assistant.api.v1.routers import V1_API_PREFIX
 from ai_assistant.api.v1.routers import v1_api_router
@@ -70,6 +71,9 @@ app = FastAPI(title='AI Assistant', lifespan=lifespan)
 # Health endpoint at root level
 # k8s expects a health endpoint at the root level
 app.include_router(health_router)
+
+# Minimal AG-UI chat client for local development (GET /chat)
+app.include_router(chat_ui_router)
 
 # Versioned API endpoints
 app.include_router(v1_api_router, prefix=V1_API_PREFIX)

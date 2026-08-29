@@ -24,6 +24,10 @@ Events. Any AG-UI-compatible client (e.g. [CopilotKit](https://www.copilotkit.ai
 can consume it out of the box; the AG-UI `threadId` maps directly to the ADK session
 id, so conversations are also visible through the session endpoints.
 
+For local development, a minimal browser chat client speaking AG-UI is served at
+http://localhost:8080/chat — handy for talking to the agent without setting up a
+full frontend.
+
 > The swagger documentation for the available endpoints can be accessed on 
 > https://localhost:8080/docs
 
