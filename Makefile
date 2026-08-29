@@ -84,8 +84,9 @@ test-unit:
 up:
 	GCP_TOKEN=$(shell gcloud auth print-access-token) docker compose up -d --wait
 
-# One-shot local environment: spin up all services and seed Langfuse + GrowthBook
-local: up langfuse-seed growthbook-seed
+# One-shot local environment: spin up all services, seed Langfuse + GrowthBook,
+# then run the Postman smoke tests against the running API
+local: up langfuse-seed growthbook-seed postman
 
 # CI Targets
 ci-lint: lint

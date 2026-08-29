@@ -117,7 +117,8 @@ The workflow includes four parallel jobs:
 ### Local environment at a glance
 
 Spin up everything (all docker services + Langfuse prompt seeding + GrowthBook
-bootstrap) with a single command:
+bootstrap), then run the Postman smoke tests against the live API, with a single
+command:
 
 ```bash
 $ make local
@@ -133,12 +134,14 @@ Once up, these are all the local services, links and credentials:
 | Service | URL | Credentials |
 | --- | --- | --- |
 | API (FastAPI) | http://localhost:8080 (Swagger: [/docs](http://localhost:8080/docs)) | — |
+| Browser chat client (AG-UI) | http://localhost:8080/chat | — |
 | AG-UI chat endpoint | `POST` http://localhost:8080/api/v1/agui | — |
 | ADK web UI (`make adk-web`) | http://localhost:8000 | — |
 | Langfuse (tracing & prompts) | http://localhost:3001 | `dev@example.com` / `langfuse-local` · API keys `pk-lf-local` / `sk-lf-local` |
 | GrowthBook (flags & experiments) | http://localhost:3002 (SDK API: http://localhost:3101) | `dev@example.com` / `growthbook-local` · SDK key written to `.env` by the seed |
 | Postgres (app database) | `localhost:5432` | `postgres` / `postgres` · db `ai_assistant` |
 | MinIO console (Langfuse storage) | http://localhost:9091 | `minio` / `miniosecret` |
+| Postman smoke tests (`make postman`) | collection: [`postman/`](postman/) | — |
 
 All credentials are throwaway values for local development only.
 
