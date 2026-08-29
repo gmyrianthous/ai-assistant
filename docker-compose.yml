@@ -5,6 +5,8 @@ volumes:
   langfuse_clickhouse_logs:
   langfuse_minio_data:
   langfuse_redis_data:
+  growthbook_mongo_data:
+  growthbook_uploads:
 
 services:
   api:
@@ -25,6 +27,7 @@ services:
     environment:
       - DATABASE_HOST=db
       - LANGFUSE_HOST=http://langfuse-web:3000
+      - GROWTHBOOK_API_HOST=http://growthbook:3100
     env_file: .env
     restart: on-failure
     volumes:
@@ -189,6 +192,55 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 3s
       timeout: 10s
+      retries: 10
+
+  # --- GrowthBook (feature flags & experimentation, local development) ----
+  # UI on http://localhost:3002, SDK/API endpoint on http://localhost:3101.
+  # All credentials below are throwaway values for local development.
+
+  growthbook:
+    image: growthbook/growthbook:latest
+    restart: unless-stopped
+    depends_on:
+      growthbook-mongo:
+        condition: service_healthy
+    ports:
+      # Host ports 3002/3101 to avoid clashing with Langfuse (3001) and
+      # other local apps on 3000
+      - "3002:3000"
+      - "3101:3100"
+    environment:
+      MONGODB_URI: mongodb://root:growthbook@growthbook-mongo:27017/growthbook?authSource=admin
+      APP_ORIGIN: http://localhost:3002
+      API_HOST: http://localhost:3101
+      JWT_SECRET: local-dev-secret
+    volumes:
+      - growthbook_uploads:/usr/local/src/app/packages/back-end/uploads
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - >-
+          require('http').get('http://127.0.0.1:3100/healthcheck',
+          r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  growthbook-mongo:
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: growthbook
+    volumes:
+      - growthbook_mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
       retries: 10
 
 secrets:
