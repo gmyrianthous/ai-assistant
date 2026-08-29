@@ -187,6 +187,25 @@ $ make test-unit
 $ make test-integration
 ```
 
+#### API smoke tests (Postman / newman)
+A Postman collection covering all endpoints lives in `postman/`, built around a
+`base_url` variable with per-target environment files (`postman/environments/`).
+Run it headlessly with [newman](https://github.com/postmanlabs/newman) — fully local,
+no Postman account needed:
+
+```bash
+# Dockerised (no install), against the API on localhost:8080
+$ make postman
+
+# Or with node installed, using the local environment file
+$ npx newman run postman/ai-assistant.postman_collection.json \
+    -e postman/environments/local.postman_environment.json
+```
+
+The collection chains requests (the created `session_id` feeds the follow-up
+requests) and asserts on every response, so it doubles as an end-to-end smoke
+suite. It can also be imported into the Postman app directly.
+
 #### Working with database migrations
 The source code utilises Alembic to manage and perform database migrations in an effective way. 
 
