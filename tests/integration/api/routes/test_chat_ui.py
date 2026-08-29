@@ -13,4 +13,4 @@ class TestChatUIGet:
         # assert
         assert result.status_code == 200
         assert result.headers['content-type'].startswith('text/html')
-        assert '/api/v1/agui' in result.text
+        assert '/api/v1/chat' in result.text

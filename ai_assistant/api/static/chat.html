@@ -95,7 +95,7 @@
   </form>
 
   <script>
-    const ENDPOINT = '/api/v1/agui';
+    const ENDPOINT = '/api/v1/chat';
     const threadId = sessionStorage.threadId ??= crypto.randomUUID();
     const userId = localStorage.userId ??= crypto.randomUUID();
     document.getElementById('thread').textContent = threadId.slice(0, 8);

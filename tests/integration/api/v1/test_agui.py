@@ -50,7 +50,7 @@ class TestAGUIEndpoint:
         # act
         with client.stream(
             'POST',
-            '/api/v1/agui',
+            '/api/v1/chat',
             json=payload,
             headers={'Accept': 'text/event-stream'},
         ) as response:

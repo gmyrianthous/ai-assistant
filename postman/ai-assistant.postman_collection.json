@@ -228,9 +228,9 @@
               "raw": "{\n  \"threadId\": \"{{session_id}}\",\n  \"runId\": \"{{$guid}}\",\n  \"state\": {},\n  \"messages\": [\n    {\n      \"id\": \"{{$guid}}\",\n      \"role\": \"user\",\n      \"content\": \"Hello!\"\n    }\n  ],\n  \"tools\": [],\n  \"context\": [],\n  \"forwardedProps\": {\n    \"user_id\": \"{{user_id}}\"\n  }\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/agui",
+              "raw": "{{base_url}}/api/v1/chat",
               "host": ["{{base_url}}"],
-              "path": ["api", "v1", "agui"]
+              "path": ["api", "v1", "chat"]
             },
             "description": "Runs the agent over the AG-UI protocol. The response is a Server-Sent Events stream of AG-UI events. Without LLM credentials configured the run still starts (RUN_STARTED) and then reports RUN_ERROR — either way the protocol wiring is exercised."
           },

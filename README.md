@@ -15,7 +15,7 @@ batteries included:
 ### ⚙️ API
 The backend implementation exposes endpoints that facilitate:
 - Session Management (REST, under `/api/v1/chatbot`)
-- Chat via the [AG-UI protocol](https://docs.ag-ui.com) (`POST /api/v1/agui`)
+- Chat via the [AG-UI protocol](https://docs.ag-ui.com) (`POST /api/v1/chat`)
 
 Chat interactions are served over AG-UI, the open agent↔user interaction protocol:
 the endpoint accepts a `RunAgentInput` payload and streams standard AG-UI events
@@ -135,7 +135,7 @@ Once up, these are all the local services, links and credentials:
 | --- | --- | --- |
 | API (FastAPI) | http://localhost:8080 (Swagger: [/docs](http://localhost:8080/docs)) | — |
 | Browser chat client (AG-UI) | http://localhost:8080/chat | — |
-| AG-UI chat endpoint | `POST` http://localhost:8080/api/v1/agui | — |
+| AG-UI chat endpoint | `POST` http://localhost:8080/api/v1/chat | — |
 | ADK web UI (`make adk-web`) | http://localhost:8000 | — |
 | Langfuse (tracing & prompts) | http://localhost:3001 | `dev@example.com` / `langfuse-local` · API keys `pk-lf-local` / `sk-lf-local` |
 | GrowthBook (flags & experiments) | http://localhost:3002 (SDK API: http://localhost:3101) | `dev@example.com` / `growthbook-local` · SDK key written to `.env` by the seed |

@@ -11,5 +11,5 @@ v1_api_router = APIRouter()
 # Include all the v1 routers here
 v1_api_router.include_router(session.router, prefix='/chatbot', tags=['session'])
 
-# AG-UI protocol endpoint for chat (POST /api/v1/agui)
-add_adk_fastapi_endpoint(v1_api_router, create_agui_agent(), path='/agui')
+# Chat endpoint speaking the AG-UI protocol (POST /api/v1/chat)
+add_adk_fastapi_endpoint(v1_api_router, create_agui_agent(), path='/chat')
