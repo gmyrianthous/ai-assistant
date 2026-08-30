@@ -15,7 +15,7 @@ batteries included:
 ### ⚙️ API
 The backend implementation exposes endpoints that facilitate:
 - Session Management (REST, under `/api/v1/chatbot`)
-- Chat via the [AG-UI protocol](https://docs.ag-ui.com) (`POST /api/v1/agui`)
+- Chat via the [AG-UI protocol](https://docs.ag-ui.com) (`POST /api/v1/chat`)
 
 Chat interactions are served over AG-UI, the open agent↔user interaction protocol:
 the endpoint accepts a `RunAgentInput` payload and streams standard AG-UI events
@@ -117,7 +117,8 @@ The workflow includes four parallel jobs:
 ### Local environment at a glance
 
 Spin up everything (all docker services + Langfuse prompt seeding + GrowthBook
-bootstrap) with a single command:
+bootstrap), then run the Postman smoke tests against the live API, with a single
+command:
 
 ```bash
 $ make local
@@ -133,12 +134,14 @@ Once up, these are all the local services, links and credentials:
 | Service | URL | Credentials |
 | --- | --- | --- |
 | API (FastAPI) | http://localhost:8080 (Swagger: [/docs](http://localhost:8080/docs)) | — |
-| AG-UI chat endpoint | `POST` http://localhost:8080/api/v1/agui | — |
+| Browser chat client (AG-UI) | http://localhost:8080/chat | — |
+| AG-UI chat endpoint | `POST` http://localhost:8080/api/v1/chat | — |
 | ADK web UI (`make adk-web`) | http://localhost:8000 | — |
 | Langfuse (tracing & prompts) | http://localhost:3001 | `dev@example.com` / `langfuse-local` · API keys `pk-lf-local` / `sk-lf-local` |
 | GrowthBook (flags & experiments) | http://localhost:3002 (SDK API: http://localhost:3101) | `dev@example.com` / `growthbook-local` · SDK key written to `.env` by the seed |
 | Postgres (app database) | `localhost:5432` | `postgres` / `postgres` · db `ai_assistant` |
 | MinIO console (Langfuse storage) | http://localhost:9091 | `minio` / `miniosecret` |
+| Postman smoke tests (`make postman`) | collection: [`postman/`](postman/) | — |
 
 All credentials are throwaway values for local development only.
 
@@ -186,6 +189,25 @@ $ make test-unit
 # Run integration tests only
 $ make test-integration
 ```
+
+#### API smoke tests (Postman / newman)
+A Postman collection covering all endpoints lives in `postman/`, built around a
+`base_url` variable with per-target environment files (`postman/environments/`).
+Run it headlessly with [newman](https://github.com/postmanlabs/newman) — fully local,
+no Postman account needed:
+
+```bash
+# Dockerised (no install), against the API on localhost:8080
+$ make postman
+
+# Or with node installed, using the local environment file
+$ npx newman run postman/ai-assistant.postman_collection.json \
+    -e postman/environments/local.postman_environment.json
+```
+
+The collection chains requests (the created `session_id` feeds the follow-up
+requests) and asserts on every response, so it doubles as an end-to-end smoke
+suite. It can also be imported into the Postman app directly.
 
 #### Working with database migrations
 The source code utilises Alembic to manage and perform database migrations in an effective way. 

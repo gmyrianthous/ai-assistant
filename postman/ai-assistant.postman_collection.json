@@ -1,0 +1,258 @@
+{
+  "info": {
+    "name": "AI Assistant",
+    "description": "Smoke-test collection for the AI Assistant API.\n\nAll requests use the `base_url` variable — select an environment from `postman/environments/` (or override with `--env-var base_url=...`).\n\nRun order matters: `Create session` stores `session_id` for the requests that follow. Run the whole collection with newman (`make postman`) or import it into Postman.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "session_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Generate a stable user id for the whole collection run",
+          "if (!pm.collectionVariables.get('user_id')) {",
+          "    pm.collectionVariables.set('user_id', pm.variables.replaceIn('{{$guid}}'));",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Root-level health endpoint used by k8s probes."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Reports OK', () => {",
+                  "    pm.expect(pm.response.json().status).to.eql('OK');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sessions",
+      "item": [
+        {
+          "name": "Create session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{user_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/chatbot/session",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "chatbot", "session"]
+            },
+            "description": "Creates a new conversation session. The returned `session_id` is stored as a collection variable for the following requests."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('Returns a session id and intro message', () => {",
+                  "    pm.expect(body.session_id).to.be.a('string').and.not.be.empty;",
+                  "    pm.expect(body.intro_message).to.be.a('string').and.not.be.empty;",
+                  "});",
+                  "pm.collectionVariables.set('session_id', body.session_id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get session",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chatbot/session/{{session_id}}?user_id={{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "chatbot", "session", "{{session_id}}"],
+              "query": [
+                {
+                  "key": "user_id",
+                  "value": "{{user_id}}"
+                }
+              ]
+            },
+            "description": "Fetches a session with its message history."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Returns the requested session', () => {",
+                  "    pm.expect(body.session_id).to.eql(pm.collectionVariables.get('session_id'));",
+                  "    pm.expect(body.user_id).to.eql(pm.collectionVariables.get('user_id'));",
+                  "    pm.expect(body.contents).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List user sessions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chatbot/sessions/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "chatbot", "sessions", "{{user_id}}"]
+            },
+            "description": "Lists all sessions belonging to the user."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Contains the created session', () => {",
+                  "    const ids = pm.response.json().sessions.map((s) => s.session_id);",
+                  "    pm.expect(ids).to.include(pm.collectionVariables.get('session_id'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get session - not found",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chatbot/session/{{$guid}}?user_id={{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "chatbot", "session", "{{$guid}}"],
+              "query": [
+                {
+                  "key": "user_id",
+                  "value": "{{user_id}}"
+                }
+              ]
+            },
+            "description": "A random session id yields a 404."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Chat (AG-UI)",
+      "item": [
+        {
+          "name": "Run agent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"threadId\": \"{{session_id}}\",\n  \"runId\": \"{{$guid}}\",\n  \"state\": {},\n  \"messages\": [\n    {\n      \"id\": \"{{$guid}}\",\n      \"role\": \"user\",\n      \"content\": \"Hello!\"\n    }\n  ],\n  \"tools\": [],\n  \"context\": [],\n  \"forwardedProps\": {\n    \"user_id\": \"{{user_id}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "chat"]
+            },
+            "description": "Runs the agent over the AG-UI protocol. The response is a Server-Sent Events stream of AG-UI events. Without LLM credentials configured the run still starts (RUN_STARTED) and then reports RUN_ERROR — either way the protocol wiring is exercised."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Responds with an SSE stream', () => {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/event-stream');",
+                  "});",
+                  "pm.test('Stream starts with RUN_STARTED', () => {",
+                  "    pm.expect(pm.response.text()).to.include('RUN_STARTED');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

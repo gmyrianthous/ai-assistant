@@ -1,4 +1,4 @@
-.PHONY: adk-web down fmt fmt-check growthbook-seed image langfuse-seed lint local logs logs-api logs-db migration-create migration-run setup test test-integration test-unit up ci-lint ci-fmt-check ci-unit ci-integration
+.PHONY: adk-web down fmt fmt-check growthbook-seed image langfuse-seed lint local logs logs-api logs-db migration-create migration-run postman setup test test-integration test-unit up ci-lint ci-fmt-check ci-unit ci-integration
 
 adk-web:
 	PYTHONPATH=. uv run adk web ai_assistant/services/ai/adk/agents/
@@ -57,6 +57,13 @@ migration-downgrade:
 migration-run:
 	GCP_TOKEN=$(shell gcloud auth print-access-token) docker compose run --rm api alembic upgrade head
 
+# Run the Postman collection against the local API with newman (dockerised)
+postman:
+	docker run --rm --add-host=host.docker.internal:host-gateway \
+		-v $(PWD)/postman:/etc/newman postman/newman run \
+		ai-assistant.postman_collection.json \
+		-e environments/docker.postman_environment.json
+
 # Setup the local environment
 setup:
 	uv sync
@@ -77,8 +84,9 @@ test-unit:
 up:
 	GCP_TOKEN=$(shell gcloud auth print-access-token) docker compose up -d --wait
 
-# One-shot local environment: spin up all services and seed Langfuse + GrowthBook
-local: up langfuse-seed growthbook-seed
+# One-shot local environment: spin up all services, seed Langfuse + GrowthBook,
+# then run the Postman smoke tests against the running API
+local: up langfuse-seed growthbook-seed postman
 
 # CI Targets
 ci-lint: lint
