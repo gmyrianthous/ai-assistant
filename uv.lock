@@ -1032,7 +1032,7 @@ wheels = [
 
 [[package]]
 name = "openinference-instrumentation"
-version = "0.1.53"
+version = "0.1.59"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "openinference-semantic-conventions" },
@@ -1040,14 +1040,14 @@ dependencies = [
     { name = "opentelemetry-sdk" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f9/b6/c0e7e047ae4962f2755a3bc9141fdd6272c75c74e47dfc6aa71978a9b78f/openinference_instrumentation-0.1.53.tar.gz", hash = "sha256:3c0c145cf6e13cfa630b29d0e3ca806f3821470ffca7922f1590e3970fadd4da", size = 33712, upload-time = "2026-06-02T16:37:21.771Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e8/1d/26b7ddff8fd4337fa81f1f205bee4df6da420a2cec27405a3fcb26fafb0e/openinference_instrumentation-0.1.59.tar.gz", hash = "sha256:d9947cf0c984e61eb7628edc3163a23c2a84fa74d985ea527075a54a2ad55b3a", size = 41281, upload-time = "2026-08-25T16:51:41.098Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/13/bb/01262d9945c476e15aa21bb9ca05b18604e525d73d9761cadb677f485198/openinference_instrumentation-0.1.53-py3-none-any.whl", hash = "sha256:f43695080eded47b1e03ff1b19cb5c23ea4409459cfe16c5b5748d5656832eb1", size = 40958, upload-time = "2026-06-02T16:37:20.69Z" },
+    { url = "https://files.pythonhosted.org/packages/cd/4a/e78714992424dd5b8d217eebb8411bc2d710e0fd08c14f38d30206a44801/openinference_instrumentation-0.1.59-py3-none-any.whl", hash = "sha256:96eb1b9a29bc934e06db69fb2d10c9ccd676c3d5c328110db6c1a861e7c084bc", size = 48953, upload-time = "2026-08-25T16:51:39.769Z" },
 ]
 
 [[package]]
 name = "openinference-instrumentation-google-adk"
-version = "0.1.23"
+version = "0.1.24"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "openinference-instrumentation" },
@@ -1058,9 +1058,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ef/61/5c92e392621bfeb6054ad1af52b83712ca9a6da6c47afed28ef3e2da99a1/openinference_instrumentation_google_adk-0.1.23.tar.gz", hash = "sha256:f022b5c28df7d37dff73cf8cd108e85bff059c37ad2c63b79d362902ebe3601e", size = 17086, upload-time = "2026-08-25T16:51:52.324Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8e/f9/719b28b5c6df577cc62b727acd90d8cdbfa82908253e122feea41694547b/openinference_instrumentation_google_adk-0.1.24.tar.gz", hash = "sha256:21d3910adeac1856ff8e2725f342783e3b974254adee83be0bd92083cd99766a", size = 17085, upload-time = "2026-08-28T04:50:55.372Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ff/90/06d8857560607d5f783fecc25fd4b826a754e7f03f04428b7f61126280cd/openinference_instrumentation_google_adk-0.1.23-py3-none-any.whl", hash = "sha256:33c226ab19c1b05bde2df988c372ca00a387927fa5dcc389574c9ec90c52c9f2", size = 19208, upload-time = "2026-08-25T16:51:51.158Z" },
+    { url = "https://files.pythonhosted.org/packages/04/97/602e9c0d097fa46b355f3bfb5a5c58d77f4107e586cf92ebc7ba9aaa4f9f/openinference_instrumentation_google_adk-0.1.24-py3-none-any.whl", hash = "sha256:11e082fa3b5c9f5fc753ad5c1ed0f4ef7ec075b0692737b3e6c717f354cf24be", size = 19208, upload-time = "2026-08-28T04:50:54.17Z" },
 ]
 
 [[package]]
